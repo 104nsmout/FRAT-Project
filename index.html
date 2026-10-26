@@ -1,0 +1,937 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#050505">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>FRAT Preflight</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: stacked full-screen phone views that slide over one another; one-column question flow with thumb-zone answers. Single dark cockpit look by choice. */
+:root {
+  --bg: #050505;
+  --panel: #0B0B0A;
+  --panel-2: #141412;
+  --line: #262623;
+  --line-2: #3A3A36;
+  --fg: #F4F4F0;
+  --fg-2: #D8D8D2;
+  --muted: #B4B4AE;
+  --dim: #9A9A94;
+  --faint: #6E6E68;
+  --accent: #F5C518;
+  --ink: #0A0A0A;
+  --warn: #FF8C28;
+  --bad: #FF6A3D;
+  --display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --ease: cubic-bezier(.22,.8,.24,1);
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--fg); font-family: var(--display); -webkit-tap-highlight-color: transparent; overscroll-behavior: none; }
+* { box-sizing: border-box; }
+button { font: inherit; color: inherit; transition: transform .14s ease, background-color .2s ease, border-color .2s ease, color .2s ease, opacity .2s ease; }
+button:active:not(:disabled) { transform: scale(.97); }
+button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+#app { position: relative; max-width: 440px; height: 100%; margin: 0 auto; overflow: hidden; }
+.screen { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 14px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 16px; background: var(--bg); overflow: hidden; }
+.screen.leaving { pointer-events: none; }
+.screen > *:not(.topo) { position: relative; z-index: 1; }
+.topo { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+.mono { font-family: var(--mono); letter-spacing: 0.14em; text-transform: uppercase; }
+.lbl { font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dim); }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.icon-btn { width: 48px; height: 48px; flex-shrink: 0; border-radius: 50%; border: 1px solid var(--line-2); background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; }
+.icon-btn .n { position: absolute; top: -3px; right: -3px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--accent); color: var(--ink); font-family: var(--mono); font-size: 10px; line-height: 18px; text-align: center; }
+.route { font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em; color: var(--muted); text-align: center; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.5; }
+.prog { display: flex; flex-direction: column; gap: 8px; }
+.prog-row { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 12px; letter-spacing: 0.16em; }
+.bar { height: 4px; border-radius: 2px; background: #22221F; overflow: hidden; }
+.bar > i { display: block; height: 4px; background: var(--accent); animation: barw .5s var(--ease) both; }
+@keyframes barw { from { width: var(--from); } }
+.q-main { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; justify-content: center; gap: 14px; }
+.fig { border-radius: 22px; background: var(--panel); border: 1px solid var(--line); overflow: hidden; }
+.fig svg { display: block; width: 100%; height: auto; }
+.fig-pad { padding: 12px; }
+h1.q { margin: 0; font-size: clamp(22px, 6.6vw, 28px); line-height: 1.12; font-weight: 800; letter-spacing: -0.01em; text-wrap: balance; }
+.q-sub { margin: -6px 0 0; font-size: 15px; color: var(--muted); }
+.answers { display: flex; flex-direction: column; gap: 10px; }
+.opt { width: 100%; min-height: 64px; padding: 0 22px; border-radius: 20px; border: 2px solid #2E2E2A; background: rgba(20,20,18,0.92); color: var(--fg); font-size: 20px; font-weight: 700; text-align: left; display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; }
+.opt.tall { min-height: 76px; font-size: 21px; }
+.opt .sub { display: block; font-family: var(--mono); font-size: 10px; font-weight: 500; letter-spacing: 0.12em; color: var(--dim); margin-top: 2px; }
+.opt.on, .seg.on, .tile.on, .rcc.on { background: var(--accent); border-color: var(--accent); color: var(--ink); }
+.opt.on .sub { color: rgba(10,10,10,0.7); }
+.sev { display: flex; align-items: flex-end; gap: 3px; height: 20px; flex-shrink: 0; }
+.sev i { display: block; width: 5px; border-radius: 2px; background: var(--line-2); }
+.sev i.f { background: currentColor; }
+.opt.on .sev i { background: rgba(10,10,10,0.25); }
+.opt.on .sev i.f { background: var(--ink); }
+.seat-row { display: flex; align-items: center; gap: 10px; }
+.seat-row .who { width: 64px; flex-shrink: 0; display: flex; flex-direction: column; gap: 2px; }
+.seg { flex: 1 1 0; min-width: 0; min-height: 62px; border-radius: 18px; border: 2px solid #2E2E2A; background: rgba(20,20,18,0.92); font-size: 18px; font-weight: 700; cursor: pointer; }
+.tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.tile { min-width: 0; min-height: 92px; padding: 12px 6px 10px; border-radius: 18px; border: 2px solid #2E2E2A; background: rgba(20,20,18,0.92); display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 6px; text-align: center; font-size: 14px; font-weight: 700; line-height: 1.15; cursor: pointer; white-space: pre-line; }
+.tile.ghost { background: transparent; border-color: var(--line-2); }
+.rcc-row { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.rcc { min-width: 0; min-height: 86px; padding: 10px 0 8px; border-radius: 16px; border: 2px solid #2E2E2A; background: rgba(20,20,18,0.92); display: flex; flex-direction: column; align-items: center; justify-content: space-between; cursor: pointer; }
+.rcc b { font-size: 26px; font-weight: 900; line-height: 1; }
+.rcc small { font-family: var(--mono); font-size: 9px; letter-spacing: 0.06em; }
+.rcc em { display: block; width: 22px; height: 5px; border-radius: 3px; }
+.ghost-btn { min-height: 56px; border-radius: 999px; border: 1px solid var(--line-2); background: transparent; color: var(--fg); font-family: var(--mono); font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer; }
+.primary { min-height: 76px; border: 0; border-radius: 999px; background: var(--accent); color: var(--ink); font-size: 23px; font-weight: 900; letter-spacing: 0.04em; display: flex; align-items: center; justify-content: center; gap: 12px; cursor: pointer; }
+.primary:disabled { opacity: 0.35; cursor: default; }
+.primary.big { min-height: 88px; font-size: 27px; }
+.textbtn { align-self: center; min-height: 44px; padding: 0 14px; border: 0; background: transparent; color: var(--muted); font-family: var(--mono); font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; text-decoration: underline; text-underline-offset: 4px; text-decoration-color: var(--line-2); cursor: pointer; }
+.foot { display: flex; justify-content: space-between; align-items: center; font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em; padding-top: 4px; }
+.chip { font-family: var(--mono); font-size: 10px; font-weight: 500; letter-spacing: 0.14em; padding: 5px 10px; border-radius: 999px; white-space: nowrap; }
+.chip.clear { color: var(--fg-2); background: #1F1F1D; border: 1px solid var(--line-2); }
+.chip.flag { color: var(--ink); background: var(--warn); }
+.chip.low { color: var(--fg); background: #1F1F1D; border: 1px solid #5E5E58; }
+.chip.elev { color: var(--ink); background: var(--accent); }
+.chip.high { color: var(--ink); background: var(--bad); }
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.field input, textarea { width: 100%; min-height: 48px; border-radius: 14px; border: 1.5px solid var(--line-2); background: var(--panel); color: var(--fg); padding: 10px 14px; font-family: var(--mono); font-size: 16px; letter-spacing: 0.06em; text-transform: uppercase; }
+textarea { font-family: var(--display); text-transform: none; letter-spacing: 0; resize: none; min-height: 72px; font-size: 16px; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.rows { display: flex; flex-direction: column; border-top: 1px solid #1F1F1D; }
+.row { min-height: 54px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 0; border-bottom: 1px solid #1F1F1D; background: transparent; color: var(--fg); text-align: left; cursor: pointer; padding: 0; width: 100%; }
+.row .l { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.scroll { overflow-y: auto; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 14px; padding-bottom: 6px; }
+.sheet-wrap { position: absolute; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: flex-end; z-index: 10; }
+.sheet { width: 100%; background: var(--panel-2); border: 1px solid var(--line-2); border-bottom: 0; border-radius: 26px 26px 0 0; padding: 12px max(20px, env(safe-area-inset-left, 0px)) calc(22px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 12px; }
+.sheet .grab { align-self: center; width: 40px; height: 4px; border-radius: 2px; background: var(--line-2); margin-bottom: 6px; }
+.toast { position: absolute; left: 50%; bottom: calc(28px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--fg); color: var(--ink); font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em; padding: 10px 16px; border-radius: 999px; z-index: 20; white-space: nowrap; }
+pre.summary { margin: 0; white-space: pre-wrap; font-family: var(--mono); font-size: 12px; line-height: 1.55; color: var(--fg-2); background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 14px; user-select: text; overflow-x: auto; }
+
+/* Home — Debrief-style */
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand .word { font-size: 30px; font-weight: 900; letter-spacing: 0.14em; }
+.home-main { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; justify-content: center; gap: 18px; }
+.eyebrow { margin: 0; font-family: var(--mono); font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent); }
+.hero { margin: 0; font-size: clamp(42px, 12.5vw, 54px); line-height: 1.0; font-weight: 800; letter-spacing: -0.015em; }
+.last { margin: 0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); }
+.last i { width: 18px; height: 1px; background: #5A5A55; }
+.last b { font-weight: 500; color: var(--fg-2); }
+.home-foot { display: flex; flex-direction: column; gap: 14px; }
+.flightline { width: 100%; min-height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 4px; border: 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: transparent; cursor: pointer; text-align: left; }
+.flightline .fl { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.flightline .fl b { font-family: var(--mono); font-weight: 500; font-size: 15px; letter-spacing: 0.1em; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.offline { margin: 0; text-align: center; font-family: var(--mono); font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--dim); }
+.offline i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); margin-right: 10px; vertical-align: 1px; }
+
+/* Hold-before-advance cue: a line sweeps across the chosen answer */
+.opt, .seg, .tile, .rcc { position: relative; overflow: hidden; }
+.sweep { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: rgba(10,10,10,0.55); transform-origin: 0 50%; animation: sweep linear both; pointer-events: none; }
+@keyframes sweep { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+/* Motion */
+.screen.enter .st { animation: rise .38s var(--ease) both; animation-delay: calc(60ms + var(--i, 0) * 45ms); }
+.pop { animation: pop .34s var(--ease); }
+@keyframes pop { 0% { transform: scale(.97); } 55% { transform: scale(1.012); } 100% { transform: none; } }
+.a-draw { animation: draw .55s var(--ease) both; }
+@keyframes draw { from { stroke-dashoffset: var(--len); } }
+.a-grow { transform-box: fill-box; transform-origin: 0% 50%; animation: growX .55s var(--ease) both; }
+@keyframes growX { from { transform: scaleX(0); } }
+.a-growY { transform-box: fill-box; transform-origin: 50% 100%; animation: growY .55s var(--ease) both; }
+@keyframes growY { from { transform: scaleY(0); } }
+.a-swing { animation: swing .6s var(--ease) both; }
+@keyframes swing { from { transform: rotate(var(--from)); } }
+.a-move { animation: move .6s var(--ease) both; }
+@keyframes move { from { transform: translate(var(--fx), var(--fy)); } }
+.a-fade { animation: fade .45s ease both; }
+@keyframes fade { from { opacity: 0; } }
+.a-pop { transform-box: fill-box; transform-origin: 50% 50%; animation: popin .4s var(--ease) both; }
+@keyframes popin { from { opacity: 0; transform: scale(.82); } }
+.a-rise { animation: rise .4s var(--ease) both; }
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+
+<div id="app"></div>
+
+<script>
+(function () {
+'use strict';
+
+/* ===== Scoring — PLACEHOLDER values. Replace with the safety manager's table. ===== */
+var SCORING = {
+  levelPts: { 1: 0, 2: 2, 3: 5, 4: 8 },
+  seatLowPts: 3,
+  multiItemPts: 3,
+  rccPts: { 6: 0, 5: 1, 4: 2, 3: 4, 2: 6, 1: 8, 0: 10 },
+  bands: { elevated: 8, high: 16 } /* score >= elevated → ELEVATED; >= high → HIGH */
+};
+
+var A = '#F5C518', WARN = '#FF8C28', BAD = '#FF6A3D';
+var EASE = 'cubic-bezier(.22,.8,.24,1)';
+var reduce = false; try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+var store = {
+  get: function (k, d) { try { var v = localStorage.getItem('frat.' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set: function (k, v) { try { localStorage.setItem('frat.' + k, JSON.stringify(v)); } catch (e) {} },
+  del: function (k) { try { localStorage.removeItem('frat.' + k); } catch (e) {} }
+};
+
+var EXAMPLE_FLIGHT = { dep: 'KHCR', arr: 'KDEN', tail: 'N680XX', pic: 'CAPT', sic: 'F/O', etd: '0800', example: true };
+var S = {
+  view: 'home',
+  flight: store.get('flight', EXAMPLE_FLIGHT),
+  draft: store.get('draft', null),
+  history: store.get('history', []),
+  lastProg: 0
+};
+var app = document.getElementById('app');
+var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+
+/* ===== Animation context: PREV = answer before this change (null on a full screen render) ===== */
+var PREV = null, ANIM = true;
+function an(cls) { return ANIM ? cls : ''; }
+function isNew(k) { return PREV == null || !(PREV.indexOf && PREV.indexOf(k) >= 0); }
+function dly(ms) { return ms ? 'animation-delay:' + ms + 'ms;' : ''; }
+
+/* ===== Shared SVG bits ===== */
+function sevBars(level, max) {
+  var h = max === 4 ? [6, 10, 15, 20] : [8, 13, 18], out = '';
+  for (var i = 0; i < h.length; i++) out += '<i class="' + (level > i ? 'f' : '') + '" style="height:' + h[i] + 'px"></i>';
+  return '<span class="sev" aria-hidden="true">' + out + '</span>';
+}
+function topo(kind) {
+  var paths = {
+    rings: '<ellipse cx="320" cy="280" rx="70" ry="46" transform="rotate(25 320 280)"/><ellipse cx="320" cy="280" rx="130" ry="86" transform="rotate(25 320 280)" stroke-dasharray="6 6"/><ellipse cx="320" cy="280" rx="200" ry="132" transform="rotate(25 320 280)"/><ellipse cx="320" cy="280" rx="280" ry="186" transform="rotate(25 320 280)"/>',
+    ringsL: '<ellipse cx="60" cy="260" rx="80" ry="50" transform="rotate(-12 60 260)"/><ellipse cx="60" cy="260" rx="140" ry="92" transform="rotate(-12 60 260)" stroke-dasharray="6 6"/><ellipse cx="60" cy="260" rx="210" ry="140" transform="rotate(-12 60 260)"/><ellipse cx="60" cy="260" rx="290" ry="196" transform="rotate(-12 60 260)"/>',
+    waves: '<path d="M-20 180 C 70 220, 150 140, 230 190 S 360 240, 420 180"/><path d="M-20 230 C 80 270, 160 190, 240 240 S 370 290, 420 230" stroke-dasharray="6 6"/><path d="M-20 280 C 90 320, 170 240, 250 290 S 380 340, 420 280"/><path d="M-20 330 C 100 370, 180 290, 260 340 S 390 390, 420 330"/>'
+  };
+  return '<svg class="topo" aria-hidden="true" viewBox="0 0 390 844" preserveAspectRatio="xMidYMin slice" fill="none" stroke="#191917" stroke-width="1.2">' + (paths[kind] || paths.rings) + '</svg>';
+}
+
+/* Home background: real contour lines (marching squares over a smooth height field) */
+var homeTopoCache = null;
+function homeTopo() {
+  if (homeTopoCache) return homeTopoCache;
+  var W = 390, H = 844, cs = 12, nx = Math.ceil(W / cs) + 1, ny = Math.ceil(H / cs) + 1, vals = [], i, j;
+  var bump = function (x, y, cx, cy, sx, sy, a) { var dx = (x - cx) / sx, dy = (y - cy) / sy; return a * Math.exp(-(dx * dx + dy * dy) / 2); };
+  var f = function (x, y) {
+    return bump(x, y, 245, 430, 120, 150, 1.2) + bump(x, y, 40, 130, 110, 120, 0.8) + bump(x, y, 360, 810, 130, 140, 0.75) + bump(x, y, 110, 650, 90, 110, -0.55) +
+      0.12 * Math.sin(x / 390 * 7 + y / 844 * 5) + 0.08 * Math.sin(x / 390 * 13 - y / 844 * 9);
+  };
+  var mn = Infinity, mx = -Infinity;
+  for (j = 0; j < ny; j++) for (i = 0; i < nx; i++) { var v = f(i * cs, j * cs); vals.push(v); if (v < mn) mn = v; if (v > mx) mx = v; }
+  var T = { 1: [[3, 2]], 2: [[2, 1]], 3: [[3, 1]], 4: [[0, 1]], 5: [[3, 0], [2, 1]], 6: [[0, 2]], 7: [[3, 0]], 8: [[3, 0]], 9: [[0, 2]], 10: [[0, 1], [3, 2]], 11: [[0, 1]], 12: [[3, 1]], 13: [[2, 1]], 14: [[3, 2]] };
+  var NL = 15, solid = '', dashed = '';
+  for (var k = 0; k < NL; k++) {
+    var L = mn + (mx - mn) * (k + 0.5) / NL, seg = '';
+    for (j = 0; j < ny - 1; j++) for (i = 0; i < nx - 1; i++) {
+      var a = vals[j * nx + i], b = vals[j * nx + i + 1], c = vals[(j + 1) * nx + i + 1], d = vals[(j + 1) * nx + i];
+      var idx = (a > L ? 8 : 0) | (b > L ? 4 : 0) | (c > L ? 2 : 0) | (d > L ? 1 : 0);
+      if (!T[idx]) continue;
+      var P = [[(i + (L - a) / (b - a)) * cs, j * cs], [(i + 1) * cs, (j + (L - b) / (c - b)) * cs], [(i + (L - d) / (c - d)) * cs, (j + 1) * cs], [i * cs, (j + (L - a) / (d - a)) * cs]];
+      T[idx].forEach(function (e) { seg += 'M' + P[e[0]][0].toFixed(1) + ' ' + P[e[0]][1].toFixed(1) + 'L' + P[e[1]][0].toFixed(1) + ' ' + P[e[1]][1].toFixed(1); });
+    }
+    if (k % 4 === 2) dashed += seg; else solid += seg;
+  }
+  homeTopoCache = '<svg class="topo" aria-hidden="true" viewBox="0 0 390 844" preserveAspectRatio="xMidYMid slice" fill="none" stroke-width="1.2" stroke-linecap="round">' +
+    '<path d="' + solid + '" stroke="#1C1C1A"/><path d="' + dashed + '" stroke="#252523" stroke-dasharray="5 5"/>' +
+    '<path d="M0 300 H390 M0 590 H390 M300 0 V844" stroke="#1C1C1A" stroke-dasharray="4 8"/>' +
+    '<g fill="#272725" font-family="JetBrains Mono, monospace" font-size="13"><text x="208" y="356" transform="rotate(62 208 356)">4200</text><text x="296" y="694" transform="rotate(-24 296 694)">4600</text><text x="36" y="236" transform="rotate(-10 36 236)">5200</text></g></svg>';
+  return homeTopoCache;
+}
+
+var planeTop = '<path d="M1 8 L8 6.6 L14 1 H17 L14.5 6.4 L27 6.2 L30 3 H32.5 L31 8 L32.5 13 H30 L27 9.8 L14.5 9.6 L17 15 H14 L8 9.4 Z"/>';
+function sovereign(id, gear, ice, iceCls) {
+  var g = '';
+  if (gear) g = '<path d="M36 70 V80 M33 80 H39" stroke="#8C8C86" stroke-width="1.6"/><circle cx="36" cy="84" r="4.2" fill="#1A1A18" stroke="#5E5E58"/><path d="M164 69 L168 82" stroke="#8C8C86" stroke-width="2.2"/><circle cx="168" cy="84" r="5" fill="#1A1A18" stroke="#5E5E58"/>';
+  var win = ''; for (var x = 106; x <= 204; x += 14) win += '<ellipse cx="' + x + '" cy="47" rx="3" ry="4"/>';
+  return '<defs><linearGradient id="f' + id + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F4F4EE"/><stop offset="0.55" stop-color="#DCDCD6"/><stop offset="1" stop-color="#9A9A94"/></linearGradient><linearGradient id="n' + id + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F0F0EA"/><stop offset="0.6" stop-color="#C8C8C2"/><stop offset="1" stop-color="#8C8C86"/></linearGradient></defs>' + g +
+    '<path d="M258 41 L281 6 C 282 4 284 3 287 3 H301 C 303 3 304 5 303.5 7 L296 46 Z" fill="url(#f' + id + ')" stroke="#7A7A74" stroke-width="0.6"/><path d="M292 9 L289 44" stroke="#9A9A94" stroke-width="0.8"/>' +
+    '<path d="M8 62 C 10 55 22 50 40 47 C 48 44 56 40 66 38.5 L200 37 C 236 37 262 40 286 46 L296 52 L292 58 C 262 62 230 66 200 68 L60 70 C 34 70 16 68 8 62 Z" fill="url(#f' + id + ')" stroke="#7A7A74" stroke-width="0.6"/>' +
+    '<path d="M60 69 L200 67 C 232 65 262 61 290 57" fill="none" stroke="#7A7A74"/>' +
+    '<path d="M14 59.5 C 70 58.5 140 60.5 210 55.5 S 268 46 292 50" fill="none" stroke="#9C7A52" stroke-width="1.6"/><path d="M14 62.2 C 70 61.2 140 63.2 212 58.2 S 268 48.6 292 52.6" fill="none" stroke="#6A3A52" stroke-width="1.1"/>' +
+    '<path d="M44 47 L53 41.2 L66 39.6 L64 46.4 Z" fill="#20242C"/><path d="M68.5 40 H80 L79 45.8 H67.6 Z" fill="#20242C"/>' +
+    '<rect x="84" y="41.5" width="10.5" height="22" rx="3" fill="none" stroke="#8C8C86" stroke-width="0.8"/><g fill="#2A2E36">' + win + '</g>' +
+    '<path d="M112 64 C 130 60 190 60 204 64 L200 70 L116 71 Z" fill="#CFCFC9" stroke="#8C8C86" stroke-width="0.6"/><path d="M120 70.5 L196 68.5 L188 73.5 L126 74.5 Z" fill="#A8A8A2"/>' +
+    '<path d="M214 37 C 214 30.5 220 28.5 228 28.5 H256 C 266 28.5 272 32.5 274 36.5 C 272 40.5 266 44 256 44 H228 C 220 44 214 42.5 214 37 Z" fill="url(#n' + id + ')" stroke="#7A7A74" stroke-width="0.6"/>' +
+    '<ellipse cx="215.5" cy="36.3" rx="2.6" ry="7" fill="#2A2A27" stroke="#E8E8E2" stroke-width="1.2"/><path d="M272 33 L278 34.6 L278 38.6 L272 40.2 Z" fill="#6E6E68"/>' +
+    '<path d="M266 22 L314 15 C 317 15 318 17 316 19 L282 27 L268 27 Z" fill="#DCDCD6" stroke="#7A7A74" stroke-width="0.6"/><circle cx="300" cy="3.5" r="1.4" fill="' + BAD + '"/>' +
+    (ice ? '<g class="' + (iceCls || '') + '" fill="none" stroke="#C9D4EE" stroke-linecap="round"><path d="M266 22 L314 15" stroke-width="3"/><path d="M258 41 L281 6" stroke-width="2.6"/><path d="M112 64 C 120 62 126 61.5 132 61.2" stroke-width="3"/><ellipse cx="215.5" cy="36.3" rx="3.6" ry="8.2" stroke-width="2.2"/><path d="M8 62 C 10 55 22 50 40 47" stroke-width="2.4"/><path d="M44 47 L53 41.2" stroke-width="2"/></g>' : '');
+}
+function arc(cx, cy, r, color, width, hrs, total, startHr, extra, delay) {
+  var C = 2 * Math.PI * r, len = (hrs / total) * C;
+  return '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="' + color + '" stroke-width="' + width + '" stroke-linecap="round" stroke-dasharray="' + len.toFixed(1) + ' ' + C.toFixed(1) + '" transform="rotate(' + (-90 + (startHr || 0) * 360 / total) + ' ' + cx + ' ' + cy + ')" class="' + an('a-draw') + '" style="--len:' + len.toFixed(1) + 'px;' + dly(delay) + '"' + (extra || '') + '/>';
+}
+function line1(d, col, w, delay, extra) { /* a path that draws itself */
+  return '<path d="' + d + '" pathLength="1" stroke-dasharray="1 1" fill="none" stroke="' + col + '" stroke-width="' + w + '" stroke-linecap="round" stroke-linejoin="round" class="' + an('a-draw') + '" style="--len:1px;' + dly(delay) + '"' + (extra || '') + '/>';
+}
+
+/* ===== Terrain mesh (Q8) and globe (Q16) ===== */
+var meshCache = null;
+function terrainH(x, z) {
+  var g = function (dx, dz, s) { return Math.exp(-(dx * dx + dz * dz) / (2 * s * s)); };
+  var h = 1.0 * g(x + 0.55, z - 0.8, 0.2) + 0.7 * g(x + 0.2, z - 0.95, 0.22) + 0.62 * g(x - 0.3, z - 0.88, 0.2) + 0.78 * g(x - 0.78, z - 0.6, 0.2) + 0.55 * g(x - 0.95, z - 0.2, 0.22) + 0.48 * g(x + 0.95, z - 0.4, 0.22) + 0.3 * g(x + 0.8, z - 0.05, 0.18) + 0.035 * Math.sin(x * 11 + z * 7) + 0.025 * Math.sin(x * 23 - z * 13);
+  var v = g(x + 0.05, z - 0.32, 0.26);
+  return Math.max(h * (1 - 0.85 * v) + 0.02, 0);
+}
+function tproj(x, z, h) { var s = 1 - z * 0.42; return [174 + x * 186 * s, 228 - z * 118 - h * 92 * (1 - z * 0.25)]; }
+function terrainMesh() {
+  if (meshCache) return meshCache;
+  var cols = 28, rows = 20, pts = [], out = '', f = function (p) { return p[0].toFixed(1) + ' ' + p[1].toFixed(1); }, r, c;
+  for (r = 0; r <= rows; r++) { var z = 1 - r / rows, row = []; for (c = 0; c <= cols; c++) { var x = -1 + 2 * c / cols; row.push(tproj(x, z, terrainH(x, z))); } pts.push(row); }
+  for (r = 0; r <= rows; r++) {
+    var rw = pts[r];
+    if (r > 0) { var d = ''; for (c = 0; c <= cols; c++) d += 'M' + f(pts[r - 1][c]) + ' L' + f(rw[c]) + ' '; out += '<path d="' + d + '" fill="none" stroke="#2C2C29" stroke-width="0.8"/>'; }
+    var ln = 'M' + f(rw[0]); for (c = 1; c <= cols; c++) ln += ' L' + f(rw[c]);
+    var sh = Math.round(70 + (r / rows) * 70);
+    out += '<path d="' + ln + ' L' + rw[cols][0].toFixed(1) + ' 250 L' + rw[0][0].toFixed(1) + ' 250 Z" fill="#070707"/>';
+    out += '<path d="' + ln + '" fill="none" stroke="rgb(' + sh + ',' + sh + ',' + (sh - 6) + ')" stroke-width="' + (0.8 + r / rows * 0.6).toFixed(2) + '" stroke-linejoin="round"/>';
+  }
+  meshCache = out; return out;
+}
+var globeCache = null;
+function gproj(lon, lat) {
+  var R = Math.PI / 180, l0 = -96 * R, p0 = 30 * R, l = lon * R, p = lat * R;
+  var cosc = Math.sin(p0) * Math.sin(p) + Math.cos(p0) * Math.cos(p) * Math.cos(l - l0);
+  return { x: 174 + 112 * Math.cos(p) * Math.sin(l - l0), y: 128 - 112 * (Math.cos(p0) * Math.sin(p) - Math.sin(p0) * Math.cos(p) * Math.cos(l - l0)), vis: cosc > 0 };
+}
+function gline(pts) { var d = '', pen = false; pts.forEach(function (q) { var p = gproj(q[0], q[1]); if (!p.vis) { pen = false; return; } d += (pen ? ' L' : ' M') + p.x.toFixed(1) + ' ' + p.y.toFixed(1); pen = true; }); return d.trim() || 'M0 0'; }
+function globe() {
+  if (globeCache) return globeCache;
+  var grid = '', lon, lat, pts;
+  for (lon = -180; lon < 180; lon += 20) { pts = []; for (lat = -90; lat <= 90; lat += 5) pts.push([lon, lat]); grid += '<path d="' + gline(pts) + '"/>'; }
+  for (lat = -60; lat <= 75; lat += 15) { pts = []; for (lon = -180; lon <= 180; lon += 5) pts.push([lon, lat]); grid += '<path d="' + gline(pts) + '"/>'; }
+  var us = [[-124.5,48.4],[-124,46],[-124.2,42],[-122.4,37.8],[-120.6,34.5],[-117.1,32.5],[-111,31.3],[-108.2,31.3],[-106.5,31.8],[-103.3,29],[-101.4,29.8],[-97.4,25.9],[-97.2,27.8],[-94.7,29.4],[-90.1,29.1],[-88,30.4],[-84.3,29.9],[-82.7,27.5],[-81.6,25.2],[-80.1,26.8],[-81.4,30.7],[-79.2,33.2],[-75.5,35.3],[-76,38.2],[-74,40.5],[-70.6,41.6],[-70.7,43.1],[-67,44.8],[-68.3,47.4],[-71.5,45],[-75,45],[-79,43.3],[-82.5,41.7],[-83.4,46],[-88.4,48.3],[-95.2,49],[-110,49],[-123.3,49],[-124.5,48.4]];
+  var route = function (b) { var p = []; for (var i = 0; i <= 24; i++) { var t = i / 24; p.push([-111.4 + (b[0] + 111.4) * t, 40.5 + (b[1] - 40.5) * t + Math.sin(t * Math.PI) * 3]); } return gline(p); };
+  globeCache = { grid: grid, usa: gline(us) + ' Z', o: gproj(-111.4, 40.5), dd: gproj(-87.9, 41.9), id: gproj(-99.1, 19.4), dom: route([-87.9, 41.9]), intl: route([-99.1, 19.4]) };
+  return globeCache;
+}
+
+/* ===== Graphics per question ===== */
+var RCC = [
+  { n: 6, short: 'DRY', word: 'Dry', surface: 'Bare, dry pavement', color: '#E8E8E2' },
+  { n: 5, short: 'GOOD', word: 'Good', surface: 'Wet · frost · thin slush', color: '#C8C8C2' },
+  { n: 4, short: 'G/M', word: 'Good–Medium', surface: 'Compacted snow, cold', color: A },
+  { n: 3, short: 'MED', word: 'Medium', surface: 'Snow · slippery when wet', color: '#FFB020' },
+  { n: 2, short: 'M/P', word: 'Medium–Poor', surface: 'Slush · standing water', color: WARN },
+  { n: 1, short: 'POOR', word: 'Poor', surface: 'Ice', color: BAD },
+  { n: 0, short: 'NIL', word: 'Nil', surface: 'Wet ice · no braking', color: '#FF4D4D' }
+];
+var G = {
+  rest: function (v) {
+    var col = v === 'short' ? WARN : '#E8E8E2';
+    return '<div class="fig-pad" style="display:flex;align-items:center;gap:20px">' +
+      '<svg viewBox="0 0 176 176" style="width:46%;max-width:176px" role="img" aria-label="Rest clock against the 10-hour minimum"><circle cx="88" cy="88" r="84" fill="#0E0E0C" stroke="#2A2A27" stroke-width="1.5"/>' +
+      '<g stroke="#4A4A45" stroke-width="2" stroke-linecap="round"><path d="M88 10 V18"/><path d="M166 88 H158"/><path d="M88 166 V158"/><path d="M10 88 H18"/></g>' +
+      '<circle cx="88" cy="88" r="62" fill="none" stroke="#1E1E1C" stroke-width="16"/>' +
+      (v ? arc(88, 88, 62, col, 16, v === 'short' ? 7 : 11.5, 24) : '<circle cx="88" cy="88" r="62" fill="none" stroke="#4A4A45" stroke-width="16" stroke-dasharray="3 3"/>') +
+      '<path d="M88 14 V40" stroke="' + A + '" stroke-width="3" stroke-linecap="round" transform="rotate(150 88 88)"/><text x="138" y="146" font-family="JetBrains Mono, monospace" font-size="10" fill="' + A + '">10H</text>' +
+      '<path d="M96 72 A17 17 0 1 0 103 98 A13.5 13.5 0 1 1 96 72 Z" fill="' + (v === 'short' ? WARN : A) + '" style="transition:fill .4s"/></svg>' +
+      '<div style="display:flex;flex-direction:column;gap:14px"><span><span class="lbl">Minimum</span><br><b style="font-size:28px">10 hrs</b></span><span><span class="lbl">Crew got</span><br><b class="' + (v ? an('a-rise') : '') + '" style="display:inline-block;font-size:28px;color:' + (v ? col : '#6E6E68') + ';' + dly(200) + '">' + (v ? (v === 'short' ? '&lt; 10 hrs' : '10+ hrs') : '—') + '</b></span></div></div>';
+  },
+  duty: function (v) {
+    var hrs = { u12: 10, u14: 13, o14: 15.3 }[v], col = { u12: '#E8E8E2', u14: A, o14: BAD }[v];
+    var bar = v ? '<rect x="10" y="44" height="20" rx="10" width="' + ((hrs / 16) * 350 - 10).toFixed(1) + '" fill="' + col + '" class="' + an('a-grow') + '"/>' : '<rect x="10" y="44" width="330" height="20" rx="10" fill="none" stroke="#4A4A45" stroke-width="1.5" stroke-dasharray="4 4"/>';
+    return '<div class="fig-pad"><svg viewBox="0 0 350 118" role="img" aria-label="Duty day timeline with 12 and 14 hour lines">' +
+      '<text x="0" y="12" font-family="JetBrains Mono, monospace" font-size="10" fill="#9A9A94">SHOW</text><text x="175" y="12" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#E8E8E2">' + (v ? { u12: 'UNDER 12', u14: '12–14 HRS', o14: 'OVER 14' }[v] : 'PROJECTED DUTY') + '</text><text x="350" y="12" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="10" fill="#9A9A94">BLOCK IN</text>' +
+      '<rect x="0.5" y="26" width="349" height="56" rx="14" fill="#0E0E0C" stroke="#2A2A27"/><rect x="262.5" y="27" width="43.75" height="54" fill="' + A + '" opacity="0.12"/><rect x="306.25" y="27" width="43" height="54" fill="' + BAD + '" opacity="0.26"/>' +
+      '<path d="M262.5 26 V82" stroke="#6E6E68"/><path d="M306.25 26 V82" stroke="' + BAD + '"/>' + bar +
+      '<g font-family="JetBrains Mono, monospace" font-size="10" fill="#9A9A94"><text x="0" y="100">0</text><text x="175" y="100" text-anchor="middle">8</text><text x="262.5" y="100" text-anchor="middle" fill="#D8D8D2">12</text><text x="306.25" y="100" text-anchor="middle" fill="' + BAD + '">14</text><text x="350" y="100" text-anchor="end">HRS</text></g></svg></div>';
+  },
+  flight: function (v) {
+    var legs = { u6: [2.0, 1.6, 1.5], u8: [2.6, 2.1, 2.2], o8: [3.1, 2.9, 2.9] }[v] || [2.4, 2.4, 2.4], col = { u6: '#E8E8E2', u8: A, o8: BAD }[v];
+    var t = 0.15, segs = '';
+    legs.forEach(function (d, i) { var x = (t / 10) * 350, w = (d / 10) * 350; t += d + 0.18;
+      segs += v ? '<g class="' + an('a-grow') + '" style="' + dly(i * 110) + '"><rect x="' + x.toFixed(1) + '" y="40" width="' + w.toFixed(1) + '" height="36" rx="9" fill="' + col + '"/><text x="' + (x + w / 2).toFixed(1) + '" y="62" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#0A0A0A">LEG ' + (i + 1) + '</text></g>'
+        : '<rect x="' + x.toFixed(1) + '" y="40" width="' + w.toFixed(1) + '" height="36" rx="9" fill="none" stroke="#4A4A45" stroke-width="1.5" stroke-dasharray="4 4"/><text x="' + (x + w / 2).toFixed(1) + '" y="62" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#6E6E68">LEG ' + (i + 1) + '</text>'; });
+    return '<div class="fig-pad"><svg viewBox="0 0 350 122" role="img" aria-label="Flight legs against 6 and 8 hour flight time lines">' +
+      '<text x="0" y="12" font-family="JetBrains Mono, monospace" font-size="10" fill="#9A9A94">FLIGHT TIME</text><text x="350" y="12" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="10" fill="' + (col || '#9A9A94') + '">' + (v ? { u6: 'UNDER 6', u8: '6–8 HRS', o8: 'OVER 8' }[v] : 'ALL LEGS') + '</text>' +
+      '<rect x="0.5" y="26" width="349" height="64" rx="14" fill="#0E0E0C" stroke="#2A2A27"/><rect x="210" y="27" width="70" height="62" fill="' + A + '" opacity="0.12"/><rect x="280" y="27" width="69" height="62" fill="' + BAD + '" opacity="0.26"/><path d="M210 26 V90" stroke="#6E6E68"/><path d="M280 26 V90" stroke="' + BAD + '"/>' + segs +
+      '<g font-family="JetBrains Mono, monospace" font-size="10" fill="#9A9A94"><text x="0" y="108">0</text><text x="105" y="108" text-anchor="middle">3</text><text x="210" y="108" text-anchor="middle" fill="#D8D8D2">6</text><text x="280" y="108" text-anchor="middle" fill="' + BAD + '">8</text><text x="350" y="108" text-anchor="end">HRS</text></g></svg></div>';
+  },
+  wocl: function (v) {
+    var inside = v === 'inside';
+    return '<div class="fig-pad" style="display:flex;align-items:center;gap:12px"><svg viewBox="0 0 220 222" style="width:58%;max-width:200px" role="img" aria-label="24-hour body clock with the 0200 to 0600 window">' +
+      '<circle cx="110" cy="110" r="96" fill="#0E0E0C" stroke="#2A2A27" stroke-width="1.5"/><g font-family="JetBrains Mono, monospace" font-size="10" fill="#9A9A94"><text x="110" y="10" text-anchor="middle">00</text><text x="219" y="114" text-anchor="end">06</text><text x="110" y="221" text-anchor="middle">12</text><text x="1" y="114">18</text></g>' +
+      '<circle cx="110" cy="110" r="56" fill="none" stroke="#1A1A18" stroke-width="30"/><circle cx="110" cy="110" r="56" fill="none" stroke="#22304F" stroke-width="30" stroke-dasharray="58.6 293.3" transform="rotate(-60 110 110)"/><path d="M160.5 74 A8 8 0 1 0 165.5 86 A6.4 6.4 0 1 1 160.5 74 Z" fill="#C9D4EE"/>' +
+      '<circle cx="110" cy="110" r="80" fill="none" stroke="#1E1E1C" stroke-width="12"/>' +
+      (v ? arc(110, 110, 80, inside ? A : '#E8E8E2', 12, inside ? 9 : 10, 24, inside ? 22 : 8) + (inside ? arc(110, 110, 80, BAD, 16, 4, 24, 2, ' stroke-linecap="butt"', 380) : '') : '<circle cx="110" cy="110" r="80" fill="none" stroke="#4A4A45" stroke-width="12" stroke-dasharray="3 4"/>') +
+      '<text x="110" y="106" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#9A9A94">BODY CLOCK</text><text x="110" y="124" text-anchor="middle" font-size="15" font-weight="800" fill="' + (!v ? '#6E6E68' : inside ? BAD : '#E8E8E2') + '" class="' + (v ? an('a-fade') : '') + '" style="' + dly(300) + '">' + (!v ? '—' : inside ? 'OVERLAP' : 'CLEAR') + '</text></svg>' +
+      '<div style="display:flex;flex-direction:column;gap:6px"><span class="lbl">Circadian low</span><b style="font-size:22px">0200–0600</b></div></div>';
+  },
+  hours: function (v) {
+    v = v || {};
+    var ang = function (s) { return s ? (s === 'low' ? -48 : 48) : -90; };
+    var gauge = function (key, seat, mark) {
+      var s = v[key], low = s === 'low', to = ang(s), from = PREV == null ? -90 : ang(PREV[key]), nd = !s ? '#6E6E68' : low ? WARN : '#F4F4F0';
+      return '<div style="flex:1;min-width:0;text-align:center"><svg viewBox="0 0 140 90"><path d="M12 74 A58 58 0 0 1 128 74" fill="none" stroke="#1E1E1C" stroke-width="9"/><path d="M12 74 A58 58 0 0 1 70 16" fill="none" stroke="' + WARN + '" stroke-opacity="0.45" stroke-width="9"/><path d="M70 16 A58 58 0 0 1 128 74" fill="none" stroke="#5E5E58" stroke-width="9"/><path d="M70 4 V20" stroke="' + A + '" stroke-width="2.6" stroke-linecap="round"/><text x="70" y="40" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#D8D8D2">' + mark + '</text>' +
+        '<g class="' + (from !== to ? 'a-swing' : '') + '" style="transform:rotate(' + to + 'deg);transform-origin:70px 74px;--from:' + from + 'deg"><path d="M70 74 L67.5 72 L70 24 L72.5 72 Z" fill="' + nd + '"/></g><circle cx="70" cy="74" r="7" fill="#1A1A18" stroke="#4A4A45" stroke-width="1.5"/></svg>' +
+        '<b style="font-size:18px;color:' + (low ? WARN : '#F4F4F0') + '">' + (!s ? '—' : low ? '&lt; ' + mark : mark + '+') + '</b><div class="lbl">' + seat + '</div></div>';
+    };
+    return '<div class="fig-pad"><div class="lbl" style="text-align:center;display:flex;justify-content:center;gap:8px;align-items:center"><svg width="30" height="14" viewBox="0 0 34 16" fill="#B4B4AE">' + planeTop + '</svg>Hours in CE-680</div><div style="display:flex;gap:10px;margin-top:6px">' + gauge('pic', 'PIC', '200') + gauge('sic', 'SIC', '100') + '</div></div>';
+  },
+  recency: function (v) {
+    v = v || {};
+    var tape = function (key, seat) {
+      var s = v[key], low = s === 'low', pct = s ? (low ? 28 : 74) : 0, h = 160 * pct / 100, ch = PREV == null || PREV[key] !== s;
+      return '<div style="text-align:center"><svg viewBox="0 0 56 176" width="56" height="176"><rect x="0.5" y="0.5" width="55" height="175" rx="14" fill="#141412" stroke="#2E2E2A"/><rect x="1" y="88" width="54" height="87" fill="' + WARN + '" opacity="0.1"/>' +
+        (s ? '<rect x="6" y="' + (170 - h).toFixed(0) + '" width="44" height="' + h.toFixed(0) + '" rx="9" fill="' + (low ? WARN : '#E8E8E2') + '" class="' + (ch ? 'a-growY' : '') + '"/>' : '<rect x="6" y="6" width="44" height="164" rx="9" fill="none" stroke="#4A4A45" stroke-width="1.5" stroke-dasharray="4 4"/>') +
+        '<rect x="0" y="87" width="56" height="2" fill="' + A + '"/></svg><div style="font-weight:800;font-size:17px;color:' + (low ? WARN : '#F4F4F0') + '">' + (!s ? '—' : low ? '&lt; 50' : '50+') + '</div><div class="lbl">' + seat + '</div></div>';
+    };
+    return '<div class="fig-pad" style="display:flex;align-items:center;justify-content:space-between;gap:12px"><div style="display:flex;flex-direction:column;gap:12px"><svg width="58" height="62" viewBox="0 0 58 62" fill="none"><rect x="2" y="8" width="54" height="52" rx="8" fill="#141412" stroke="#4A4A45" stroke-width="1.5"/><path d="M2 22 H56" stroke="#4A4A45" stroke-width="1.5"/><path d="M16 3 V13 M42 3 V13" stroke="#9A9A94" stroke-width="2.4" stroke-linecap="round"/><text x="29" y="50" text-anchor="middle" font-size="22" font-weight="800" fill="#F4F4F0">90</text></svg><span><span class="lbl">Last 90 days</span><br><b style="font-size:24px">50 hrs</b><br><span class="lbl">minimum each</span></span></div><div style="display:flex;gap:12px">' + tape('pic', 'PIC') + tape('sic', 'SIC') + '</div></div>';
+  },
+  contract: function (v) {
+    var seat = function (x, label, c, animate) {
+      var st = v == null ? ['#3A3A36', 'transparent', '#4A4A45', '#6E6E68', '4 4', '?'] : c ? [A, A, A, '#0A0A0A', 'none', 'CONTRACT'] : ['#5E5E58', '#22221F', '#5E5E58', '#E8E8E2', 'none', 'COMPANY'];
+      return '<g transform="translate(' + x + ' 74)"><rect x="-22" y="0" width="44" height="22" rx="9" fill="#1A1A18" stroke="' + st[0] + '" stroke-width="1.6"/><rect x="-36" y="28" width="72" height="76" rx="18" fill="#1A1A18" stroke="' + st[0] + '" stroke-width="1.6"/><rect x="-48" y="48" width="10" height="52" rx="5" fill="#141412" stroke="#3A3A36"/><rect x="38" y="48" width="10" height="52" rx="5" fill="#141412" stroke="#3A3A36"/><text x="0" y="66" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#9A9A94">' + label + '</text><g transform="translate(0 116)"><g class="' + (v != null && animate ? an('a-pop') : '') + '"><rect x="-46" y="0" width="92" height="28" rx="7" fill="' + st[1] + '" stroke="' + st[2] + '" stroke-width="1.5" stroke-dasharray="' + st[4] + '"/><text x="0" y="18.5" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" fill="' + st[3] + '">' + st[5] + '</text></g></g></g>';
+    };
+    return '<svg viewBox="0 0 330 228" role="img" aria-label="Top-down cockpit with each seat badged company or contract"><path d="M8 44 Q165 -8 322 44 L322 64 Q165 14 8 64 Z" fill="#141412" stroke="#2A2A27"/><g fill="#0B0B0A" stroke="#3A3A36"><rect x="58" y="34" width="34" height="20" rx="3" transform="rotate(-9 75 44)"/><rect x="102" y="28" width="34" height="20" rx="3" transform="rotate(-4 119 38)"/><rect x="194" y="28" width="34" height="20" rx="3" transform="rotate(4 211 38)"/><rect x="238" y="34" width="34" height="20" rx="3" transform="rotate(9 255 44)"/></g><rect x="148" y="70" width="34" height="96" rx="8" fill="#141412" stroke="#2A2A27"/>' + seat(82, 'CAPT', false, PREV == null) + seat(248, 'F/O', v === 'contract', true) + '</svg>';
+  },
+  base: function (v) {
+    var k = tproj(-0.05, 0.32, terrainH(-0.05, 0.32)), kx = k[0], ky = k[1], by = ky - 56, away = v === 'away', known = v != null;
+    var ring = known && !away ? A : '#6E6E68';
+    var homeF = [kx + 30, by + 16], awayF = [316, 36], to = away ? awayF : homeF;
+    var from = PREV === 'away' ? awayF : (PREV == null && away ? homeF : PREV === 'home' ? homeF : to);
+    var moved = ANIM && (from[0] !== to[0] || from[1] !== to[1]);
+    var dot = function (x, y, l, fill, cls, fx, fy) { return '<g class="' + (cls || '') + '" style="transform:translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px);--fx:' + (fx == null ? x : fx).toFixed(1) + 'px;--fy:' + (fy == null ? y : fy).toFixed(1) + 'px"><circle r="10" fill="' + fill + '" stroke="#070707" stroke-width="2"/><text y="3.6" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="' + (known ? '#0A0A0A' : '#9A9A94') + '">' + l + '</text></g>'; };
+    return '<svg viewBox="0 0 348 250" style="background:#070707" role="img" aria-label="Wireframe terrain of the Heber Valley with KHCR on the valley floor">' + terrainMesh() +
+      (away ? '<g class="' + an('a-fade') + '" style="' + dly(250) + '"><path d="M316 36 Q ' + (kx + 90).toFixed(0) + ' ' + (by - 60).toFixed(0) + ' ' + (kx + 20).toFixed(0) + ' ' + (by - 4).toFixed(0) + '" fill="none" stroke="' + A + '" stroke-width="1.8" stroke-dasharray="6 6"/><circle cx="316" cy="36" r="7" fill="#22221F" stroke="#B4B4AE" stroke-width="1.5"/><text x="324" y="21" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="10" fill="#B4B4AE">OTHER BASE</text></g>' : '') +
+      '<g transform="translate(' + kx.toFixed(1) + ' ' + ky.toFixed(1) + ')"><ellipse rx="26" ry="8" fill="none" stroke="' + ring + '" stroke-opacity="0.5"/><ellipse rx="42" ry="13" fill="none" stroke="' + ring + '" stroke-opacity="0.25"/><path d="M0 0 V-40" stroke="' + ring + '" stroke-width="1.5"/><g transform="translate(0 -56)"><circle r="16" fill="#141412" stroke="' + ring + '" stroke-width="2"/><path d="M-7 1 L0 -6 L7 1 M-4.5 -1 V6 H4.5 V-1" fill="none" stroke="#F4F4F0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></g><text x="-24" y="-66" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="11" fill="#F4F4F0">KHCR</text><text x="-24" y="-53" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="9" fill="#9A9A94">HEBER · HOME</text></g>' +
+      dot(kx + 30, by - 8, 'C', known ? '#E8E8E2' : '#3A3A36') + dot(to[0], to[1], 'F', away ? A : known ? '#E8E8E2' : '#3A3A36', moved ? 'a-move' : '', from[0], from[1]) + '</svg>';
+  },
+  notice: function (v) {
+    var col = v === 'popup' ? BAD : '#E8E8E2';
+    return '<div class="fig-pad" style="display:flex;align-items:center;gap:14px"><svg viewBox="0 0 220 232" style="width:56%;max-width:200px" role="img" aria-label="Stopwatch from crew call to show with a 4-hour mark"><rect x="101" y="22" width="18" height="12" rx="3" fill="#2E2E2A" stroke="#4A4A45"/><rect x="106" y="33" width="8" height="8" fill="#2E2E2A"/><circle cx="110" cy="124" r="84" fill="#0E0E0C" stroke="#2A2A27" stroke-width="1.5"/>' +
+      '<g font-family="JetBrains Mono, monospace" font-size="11" fill="#9A9A94" text-anchor="middle"><text x="197" y="79">1</text><text x="197" y="181">2</text><text x="110" y="227">3</text><text x="23" y="79">5</text></g>' +
+      '<circle cx="110" cy="124" r="46" fill="none" stroke="' + WARN + '" stroke-opacity="0.18" stroke-width="10" stroke-dasharray="192.7 289" transform="rotate(-90 110 124)"/><circle cx="110" cy="124" r="66" fill="none" stroke="#1E1E1C" stroke-width="14"/>' +
+      (v ? arc(110, 124, 66, col, 14, v === 'popup' ? 1.5 : 5, 6) : '<circle cx="110" cy="124" r="66" fill="none" stroke="#4A4A45" stroke-width="14" stroke-dasharray="3 4"/>') +
+      '<path d="M37.3 166 L65 150" stroke="' + A + '" stroke-width="3" stroke-linecap="round"/><text x="22" y="186" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="' + A + '">4H</text><g transform="translate(110 112)" fill="none" stroke="#E8E8E2" stroke-width="2"><rect x="-10" y="-16" width="20" height="32" rx="4"/><circle cx="9" cy="-15" r="5" fill="' + (v === 'popup' ? BAD : A) + '" stroke="none"/></g><text x="110" y="146" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#9A9A94">CALL → SHOW</text></svg>' +
+      '<div style="display:flex;flex-direction:column;gap:14px"><span><span class="lbl">Minimum</span><br><b style="font-size:26px">4 hrs</b></span><span><span class="lbl">Notice</span><br><b class="' + (v ? an('a-rise') : '') + '" style="display:inline-block;font-size:26px;color:' + (v ? col : '#6E6E68') + ';' + dly(200) + '">' + (!v ? '—' : v === 'popup' ? 'Pop-up' : '4+ hrs') + '</b></span></div></div>';
+  },
+  tower: function (v) {
+    var t = function (x, name, closed, i) {
+      var s = v == null ? ['0', '#1A1A18', '#4A4A45', '#3A3A36', '—', '#6E6E68'] : closed ? ['0', '#0E0E0C', BAD, '#2A2A27', 'CLOSED', BAD] : ['0.12', A, '#0A0A0A', '#E8E8E2', 'OPEN', '#E8E8E2'];
+      var fx = v != null ? an('a-fade') : '';
+      return '<g transform="translate(' + x + ' 0)"><circle cy="96" r="44" fill="' + A + '" opacity="' + s[0] + '" class="' + fx + '" style="' + dly(i * 90) + '"/><path d="M-9 196 L-6 104 L6 104 L9 196 Z" fill="#1A1A18" stroke="#3A3A36"/><path d="M-26 84 L26 84 L19 104 L-19 104 Z" fill="' + s[1] + '" stroke="' + s[2] + '" stroke-width="1.5" style="transition:fill .35s ease ' + (i * 90) + 'ms, stroke .35s"/><path d="M-12 84 L-9 104 M0 84 V104 M12 84 L9 104" stroke="' + s[2] + '"/><rect x="-28" y="78" width="56" height="6" rx="1.5" fill="#2A2A27" stroke="#4A4A45"/><path d="M0 78 V62" stroke="#4A4A45" stroke-width="1.5"/><circle cy="60" r="3.5" fill="' + s[3] + '"/><text y="214" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#B4B4AE">' + name + '</text><text y="227" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="' + s[5] + '" class="' + fx + '" style="' + dly(150 + i * 90) + '">' + s[4] + '</text></g>';
+    };
+    return '<svg viewBox="0 0 348 232" style="background:#070707" role="img" aria-label="Control towers for origin, destination and alternate">' + t(64, 'ORIG', false, 0) + t(174, 'DEST', v === 'some', 1) + t(284, 'ALTN', false, 2) + '<path d="M0 196 H348" stroke="#3A3A36" stroke-width="1.2"/></svg>';
+  },
+  awos: function (v) {
+    var live = v === 'yes', dead = v === 'no', inst = live ? '#E8E8E2' : dead ? '#3A3A36' : '#5E5E58';
+    return '<svg viewBox="0 0 348 196" style="background:#070707" role="img" aria-label="Automated weather station at the arrival airport">' +
+      (live ? '<g fill="none" stroke="' + A + '" stroke-linecap="round"><path d="M176 44 A22 22 0 0 1 176 80" stroke-width="2.4" class="' + an('a-fade') + '"/><path d="M190 32 A38 38 0 0 1 190 92" stroke-width="2" stroke-opacity="0.7" class="' + an('a-fade') + '" style="' + dly(120) + '"/><path d="M204 20 A54 54 0 0 1 204 104" stroke-width="1.6" stroke-opacity="0.4" class="' + an('a-fade') + '" style="' + dly(240) + '"/></g>' : '') +
+      (dead ? '<g class="' + an('a-pop') + '"><path d="M178 46 L202 70 M202 46 L178 70" stroke="' + BAD + '" stroke-width="3" stroke-linecap="round"/></g>' : '') +
+      '<path d="M116 184 L120 58 L124 58 L128 184 Z" fill="#1E1E1C" stroke="#4A4A45"/><path d="M88 62 H162" stroke="#6E6E68" stroke-width="3" stroke-linecap="round"/><g stroke="' + inst + '" stroke-width="1.6" fill="none" style="transition:stroke .35s"><path d="M88 62 V48 M76 48 H100"/><circle cx="75" cy="48" r="4" fill="' + inst + '"/><circle cx="101" cy="48" r="4" fill="' + inst + '"/><path d="M160 62 V50 M148 50 H170 M170 50 L164 45 M170 50 L164 55"/></g>' +
+      '<rect x="104" y="112" width="36" height="30" rx="4" fill="#141412" stroke="#4A4A45"/><circle cx="132" cy="120" r="2.5" fill="' + (live ? '#7CE08A' : dead ? BAD : '#3A3A36') + '"/><path d="M70 150 L104 138 L104 154 L70 166 Z" fill="#1A2236" stroke="#3A4A70"/>' +
+      '<path d="M266 184 V100" stroke="#6E6E68" stroke-width="2.4"/><path d="M268 104 L318 112 L318 124 L268 130 Z" fill="#141412" stroke="#6E6E68"/><path d="M281 106 V128 M294 108 V126 M306 110 V124" stroke="' + (live ? WARN : '#2A2A27') + '" stroke-width="8"/><path d="M0 184 H348" stroke="#3A3A36" stroke-width="1.2"/>' +
+      '<text x="16" y="28" font-family="JetBrains Mono, monospace" font-size="10" fill="#9A9A94">' + esc(S.flight.arr) + ' · AWOS / ASOS</text></svg>' +
+      '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid #1E1E1C;font-family:var(--mono);font-size:11px;letter-spacing:0.08em"><span class="chip ' + (live ? 'elev' : dead ? 'high' : 'clear') + '">' + (live ? 'LIVE' : dead ? 'NONE' : 'WX') + '</span><span class="' + (v ? an('a-rise') : '') + '" style="color:' + (dead ? WARN : live ? '#E8E8E2' : '#6E6E68') + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;' + dly(200) + '">' + (live ? 'METAR ' + esc(S.flight.arr) + ' — CHECK CURRENT REPORT' : dead ? 'NO REPORT — USE NEAREST SOURCE' : '— — —') + '</span></div>';
+  },
+  approach: function (v) {
+    var P = {
+      prec: ['M24 36 L240 154', '', 144, 'DA', 28.6, 36, '#E8E8E2'],
+      vert: ['M24 36 L216 141', 'M216 141 L240 154', 128, 'DA', 28.6, 36, '#E8E8E2'],
+      npa: ['M24 36 H66 L84 66 H138 L156 96 H186 L198 112 H214', 'M214 112 L240 154', 112, 'MDA', 0, 36, A],
+      vis: ['M24 60 L150 100 H300 C 326 100 326 134 300 134 H262', 'M262 134 C 246 134 240 146 246 154', 100, 'CIRCLING MDA', 17.6, 60, WARN]
+    }[v] || ['M24 36 L240 154', '', 130, 'MINIMUMS', 28.6, 36, '#4A4A45'];
+    return '<div class="fig-pad"><div style="display:flex;justify-content:space-between" class="lbl"><span>' + esc(S.flight.arr) + ' · Best approach</span><span style="color:' + P[6] + '">' + (v ? { prec: 'Precision', vert: 'LNAV/VNAV', npa: 'Step-down', vis: 'Circle to land' }[v] : '') + '</span></div>' +
+      '<svg viewBox="0 0 326 178" style="margin-top:8px;border-radius:14px;background:#070707"><g stroke="#141412"><path d="M0 40 H326 M0 80 H326 M0 120 H326"/></g><g class="' + (v ? an('a-fade') : '') + '"><path d="M0 ' + P[2] + ' H326" stroke="#9A9A94" stroke-width="1.2" stroke-dasharray="3 4"/><text x="8" y="' + (P[2] - 6) + '" font-family="JetBrains Mono, monospace" font-size="10" fill="#D8D8D2">' + P[3] + '</text></g>' +
+      (v ? line1(P[0], P[6], 2.4) : '<path d="' + P[0] + '" fill="none" stroke="' + P[6] + '" stroke-width="2.4" stroke-dasharray="6 6"/>') + (P[1] ? '<path d="' + P[1] + '" fill="none" stroke="' + P[6] + '" stroke-width="1.6" stroke-dasharray="2 4" class="' + an('a-fade') + '" style="' + dly(450) + '"/>' : '') +
+      '<g transform="translate(24 ' + P[5] + ') rotate(' + P[4] + ')"><path d="M-14 0 L-4 -1.6 L1 -8 H4 L2 -1.4 L10 -1.2 L13 -4 H15 L14 0 L15 4 H13 L10 1.2 L2 1.4 L4 8 H1 L-4 1.6 Z" fill="#F4F4F0"/></g><rect x="0" y="156" width="326" height="22" fill="#141412"/><rect x="236" y="153" width="86" height="6" rx="1" fill="#6E6E68"/></svg></div>';
+  },
+  eop: function (v) {
+    var turn = v === 'turn', col = v == null ? '#4A4A45' : turn ? A : '#E8E8E2';
+    var path = turn ? 'M174 160 V120 C 174 92, 200 76, 236 76 H330' : 'M174 160 V24', arrow = turn ? 'M320 68 L330 76 L320 84' : 'M166 34 L174 24 L182 34';
+    return '<svg viewBox="0 0 348 250" style="background:#070707" role="img" aria-label="Top-down departure and engine-out path"><g fill="none" stroke="#2A2A27" stroke-width="1.2"><path d="M-10 40 C 30 30, 60 70, 40 110 S -10 170, -10 190"/><path d="M358 50 C 318 40, 290 80, 310 120 S 358 180, 358 200"/></g>' +
+      (turn ? '<g class="' + an('a-fade') + '"><g fill="none" stroke="' + WARN + '" stroke-width="1.4"><ellipse cx="150" cy="48" rx="34" ry="20" stroke-opacity="0.8"/><ellipse cx="150" cy="48" rx="62" ry="36" stroke-opacity="0.5"/><ellipse cx="150" cy="48" rx="92" ry="54" stroke-opacity="0.3" stroke-dasharray="5 5"/></g><text x="150" y="52" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="' + WARN + '">TERRAIN</text></g>' : '') +
+      '<rect x="165" y="160" width="18" height="84" rx="2" fill="#2A2A27" stroke="#4A4A45"/><path d="M174 166 V238" stroke="#070707" stroke-width="1.2" stroke-dasharray="6 5"/>' +
+      (v ? line1(path, col, 3, 100) + '<path d="' + arrow + '" fill="none" stroke="' + col + '" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="' + an('a-fade') + '" style="' + dly(520) + '"/>'
+        : '<path d="' + path + '" fill="none" stroke="' + col + '" stroke-width="3" stroke-linecap="round" stroke-dasharray="6 6"/><path d="' + arrow + '" fill="none" stroke="' + col + '" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>') +
+      (turn ? '<g class="' + an('a-fade') + '" style="' + dly(350) + '"><circle cx="174" cy="120" r="5" fill="#070707" stroke="' + A + '" stroke-width="2"/><text x="184" y="124" font-family="JetBrains Mono, monospace" font-size="9" fill="' + A + '">TURN @ FIX / ALT</text></g>' : '') +
+      '<text x="14" y="22" font-family="JetBrains Mono, monospace" font-size="10" fill="#B4B4AE">EOP · ' + esc(S.flight.dep) + '</text></svg>';
+  },
+  runway: function (v) {
+    var over = v === 'over', raw = v == null ? 140 : over ? 220 : 145, fac = raw * 1.44, fcol = v == null ? 'none' : over ? BAD : A;
+    return '<svg viewBox="0 0 348 230" style="background:#070707" role="img" aria-label="Runway with landing distance and landing distance times 1.44"><text x="14" y="26" font-family="JetBrains Mono, monospace" font-size="10" fill="#9A9A94">' + esc(S.flight.arr) + ' · RUNWAY AVAILABLE</text>' +
+      '<rect x="300" y="52" width="40" height="76" fill="' + (over ? 'rgba(255,106,61,0.22)' : '#0E0E0C') + '" style="transition:fill .4s ease .35s"/><g fill="none" stroke="#4A4A45" stroke-width="2"><path d="M306 60 L318 90 L306 120"/><path d="M320 60 L332 90 L320 120"/></g><rect x="14" y="52" width="286" height="76" rx="2" fill="#1E1E1C" stroke="#3A3A36"/><path d="M44 90 H270" stroke="#5E5E58" stroke-width="2" stroke-dasharray="14 10"/><path d="M14 46 V134 M300 46 V134" stroke="#9A9A94" stroke-width="1.5"/>' +
+      '<text x="14" y="158" font-family="JetBrains Mono, monospace" font-size="10" fill="#9A9A94">LANDING DIST</text><rect x="14" y="164" width="' + raw + '" height="12" rx="6" fill="' + (v == null ? '#2E2E2A' : '#8C8C86') + '" class="' + (v ? an('a-grow') : '') + '"/>' +
+      '<text x="14" y="198" font-family="JetBrains Mono, monospace" font-size="10" fill="' + (v == null ? '#9A9A94' : fcol) + '">× 1.44</text><rect x="14" y="204" width="' + fac.toFixed(0) + '" height="14" rx="7" fill="' + (v == null ? 'none' : fcol) + '"' + (v == null ? ' stroke="#4A4A45" stroke-dasharray="4 4"' : ' class="' + an('a-grow') + '" style="' + dly(220) + '"') + '/><path d="M300 150 V222" stroke="#9A9A94" stroke-dasharray="3 3"/>' +
+      (v ? '<text x="' + (over ? 340 : 296) + '" y="198" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="10" fill="' + (over ? BAD : '#E8E8E2') + '" class="' + an('a-fade') + '" style="' + dly(600) + '">' + (over ? 'OVERRUN' : 'MARGIN') + '</text>' : '') + '</svg>';
+  },
+  rcc: function (v) {
+    var c = RCC.filter(function (r) { return r.n === v; })[0];
+    var tex = '';
+    if (c) {
+      var seed = 7 + c.n * 13, rnd = function () { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+      var pt = function () { var t = rnd(), y = 24 + t * 194, l = 120 - 102 * t, r = 228 + 102 * t; return [l + 6 + rnd() * (r - l - 12), y, t]; };
+      var add = function (n, fn) { for (var i = 0; i < n; i++) { var p = pt(); tex += fn(p[0], p[1], p[2]); } };
+      var dot = function (col, op) { return function (x, y, t) { return '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + (1.4 + t * 2.4).toFixed(1) + '" fill="' + col + '" opacity="' + op + '"/>'; }; };
+      var streak = function (col, w, len) { return function (x, y, t) { var L = len + t * len * 1.5; return '<path d="M' + x.toFixed(1) + ' ' + y.toFixed(1) + ' l' + (L * 0.12).toFixed(1) + ' ' + L.toFixed(1) + '" stroke="' + col + '" stroke-width="' + (w + t * 1.5).toFixed(1) + '" stroke-linecap="round" opacity="0.55"/>'; }; };
+      if (c.n === 5) add(26, streak('#8FA0C8', 1.2, 6));
+      if (c.n === 4) { add(18, streak('#8FA0C8', 1, 6)); add(40, dot('#E8E8E2', 0.6)); }
+      if (c.n === 3) add(110, dot('#E8E8E2', 0.72));
+      if (c.n === 2) { add(60, function (x, y, t) { return '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + (3 + t * 5).toFixed(1) + '" fill="#7A7468" opacity="0.75"/>'; }); add(50, dot('#E8E8E2', 0.6)); }
+      if (c.n === 1) add(34, streak('#C9D4EE', 1.5, 12));
+      if (c.n === 0) { add(40, streak('#C9D4EE', 2, 14)); add(20, streak('#8FA0C8', 1.5, 10)); }
+      if (c.n === 0) tex += '<path d="M120 20 L228 20 L330 222 L18 222 Z" fill="rgba(255,77,77,0.14)"/>';
+    }
+    return '<div class="fig-pad" style="display:flex;align-items:center;gap:14px"><svg viewBox="0 0 348 230" style="width:56%;flex-shrink:0" role="img" aria-label="Runway surface for the selected condition code"><path d="M120 20 L228 20 L330 222 L18 222 Z" fill="#1E1E1C" stroke="#3A3A36" stroke-width="1.5"/><path d="M174 30 V48 M174 66 V90 M174 112 V142 M174 166 V204" stroke="#5E5E58" stroke-width="3"/><g class="' + (c ? an('a-fade') : '') + '">' + tex + '</g></svg>' +
+      '<div style="display:flex;flex-direction:column;gap:6px;min-width:0"><span class="lbl">Worst RCC</span><b class="' + (c ? an('a-pop') : '') + '" style="display:inline-block;font-size:60px;font-weight:900;line-height:0.9;color:' + (c ? c.color : '#6E6E68') + '">' + (c ? c.n : '—') + '</b><b style="font-size:19px;color:' + (c ? c.color : '#6E6E68') + '">' + (c ? c.word : 'Select code') + '</b><span class="lbl" style="font-size:10px;line-height:1.5">' + (c ? c.surface : 'Typical surface shows here') + '</span></div></div>';
+  },
+  intl: function (v) {
+    var g = globe(), intl = v === 'intl', d = intl ? g.id : g.dd, col = intl ? A : '#E8E8E2';
+    return '<div style="position:relative"><svg viewBox="0 0 348 250" style="background:#070707" role="img" aria-label="Wireframe globe with the U.S. boundary and the route"><circle cx="174" cy="128" r="112" fill="#0B0B0A" stroke="#3A3A36" stroke-width="1.2"/><g fill="none" stroke="#22221F">' + g.grid + '</g><path d="' + g.usa + '" fill="rgba(232,232,226,0.06)" stroke="#8C8C86" stroke-width="1.4" stroke-dasharray="4 3"/>' +
+      (v ? line1(intl ? g.intl : g.dom, col, 2.6) + '<g transform="translate(' + d.x.toFixed(1) + ' ' + d.y.toFixed(1) + ')"><g class="' + an('a-pop') + '" style="' + dly(450) + '"><circle r="12" fill="none" stroke="' + col + '" stroke-opacity="0.5"/><circle r="5.5" fill="' + col + '" stroke="#070707" stroke-width="2"/><text x="10" y="22" font-family="JetBrains Mono, monospace" font-size="10" fill="' + col + '">' + esc(S.flight.arr) + '</text></g></g>' : '') +
+      '<g transform="translate(' + g.o.x.toFixed(1) + ' ' + g.o.y.toFixed(1) + ')"><circle r="5" fill="#E8E8E2" stroke="#070707" stroke-width="2"/><text x="-8" y="-8" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="10" fill="#E8E8E2">' + esc(S.flight.dep) + '</text></g></svg>' +
+      (intl ? '<span class="chip elev ' + an('a-rise') + '" style="position:absolute;left:12px;bottom:12px;' + dly(500) + '">CUSTOMS · PASSPORTS · eAPIS</span>' : '') + '</div>';
+  },
+  hazards: function (v) {
+    v = v || []; var has = function (k) { return v.indexOf(k) >= 0; }, any = has('precip') || has('ice') || has('turb'), none = has('none');
+    var fadeNew = function (k) { return isNew(k) ? 'a-fade' : ''; };
+    var tilt = has('turb') ? 5 : 0, prevTilt = PREV == null ? 0 : (PREV.indexOf('turb') >= 0 ? 5 : 0);
+    return '<svg viewBox="0 0 348 196" style="background:#070707" role="img" aria-label="Aircraft en route with selected weather hazards">' +
+      '<g fill="#2C2C29" opacity="' + (has('precip') ? 1 : any ? 0.5 : none ? 0 : 0.35) + '" style="transition:opacity .45s"><circle cx="80" cy="40" r="26"/><circle cx="114" cy="30" r="30"/><circle cx="150" cy="42" r="24"/><circle cx="226" cy="36" r="22"/><circle cx="258" cy="26" r="28"/><circle cx="292" cy="40" r="22"/><rect x="56" y="40" width="118" height="26" rx="12"/><rect x="206" y="36" width="108" height="26" rx="12"/></g>' +
+      (has('precip') ? '<g class="' + fadeNew('precip') + '" stroke="#8FA0C8" stroke-width="1.8" stroke-linecap="round"><path d="M70 72 L62 104 M86 72 L78 110 M102 72 L94 112 M118 72 L110 108 M134 72 L126 104 M150 72 L142 100 M216 68 L208 100 M232 68 L224 106 M248 68 L240 110 M264 68 L256 106 M280 68 L272 102 M296 68 L288 98"/></g>' : '') +
+      '<path d="' + (has('turb') ? 'M0 140 q 20 -14 40 0 t 40 0 t 40 0 t 40 0 t 40 0 t 40 0 t 40 0 t 40 0 t 40 0' : 'M0 136 H348') + '" fill="none" stroke="#4A4A45" stroke-width="1.6" stroke-dasharray="5 5"/>' +
+      (has('turb') ? '<g class="' + fadeNew('turb') + '" fill="none" stroke="' + WARN + '" stroke-width="1.8" stroke-linecap="round"><path d="M40 112 q 10 -8 20 0 t 20 0 t 20 0"/><path d="M248 152 q 10 -8 20 0 t 20 0 t 20 0"/><path d="M56 160 q 10 -8 20 0 t 20 0"/><path d="M260 108 q 10 -8 20 0 t 20 0"/></g>' : '') +
+      '<g transform="translate(174 134)"><g class="' + (tilt !== prevTilt ? 'a-swing' : '') + '" style="transform:rotate(' + tilt + 'deg);transform-origin:0 0;--from:' + prevTilt + 'deg"><g transform="scale(0.78) translate(-160 -40)">' + sovereign('h', false, has('ice'), fadeNew('ice')) + '</g></g></g>' +
+      (has('ice') ? '<g class="' + fadeNew('ice') + '" stroke="#C9D4EE" stroke-width="1.5" stroke-linecap="round"><path d="M30 153 V167 M24 156.5 L36 163.5 M24 163.5 L36 156.5"/><path d="M318 112 V124 M313 115 L323 121 M313 121 L323 115"/></g>' : '') +
+      '<text x="14" y="188" font-family="JetBrains Mono, monospace" font-size="10" fill="' + (any ? WARN : '#9A9A94') + '">' + (none ? 'CLEAR · NO HAZARDS REPORTED' : any ? ['precip', 'ice', 'turb'].filter(has).map(function (k) { return { precip: 'PRECIP', ice: 'ICING', turb: 'TURB' }[k]; }).join(' · ') + ' REPORTED' : 'TAP WHAT’S REPORTED') + '</text></svg>';
+  },
+  aircraft: function (v) {
+    v = v || []; var has = function (k) { return v.indexOf(k) >= 0; }, pop = function (k) { return isNew(k) ? 'a-pop' : ''; };
+    return '<svg viewBox="0 0 348 200" style="background:#070707" role="img" aria-label="The aircraft on the ramp with maintenance item tags"><text x="14" y="24" font-family="JetBrains Mono, monospace" font-size="10" fill="#9A9A94">' + esc(S.flight.tail) + ' · CITATION SOVEREIGN</text><ellipse cx="174" cy="170" rx="150" ry="5" fill="#000" opacity="0.6"/><path d="M0 168 H348" stroke="#3A3A36" stroke-width="1.2"/>' +
+      '<g transform="translate(14 79)">' + sovereign('a', true, false) + '</g>' +
+      (has('mel') ? '<g class="' + pop('mel') + '"><path d="M71 123 L57 64" stroke="' + A + '" stroke-width="1.4"/><circle cx="71" cy="123" r="3" fill="' + A + '"/><rect x="14" y="38" width="86" height="26" rx="6" fill="' + A + '"/><text x="57" y="55" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#0A0A0A">MEL · INOP</text></g>' : '') +
+      (has('postmx') ? '<g class="' + pop('postmx') + '"><path d="M244 114 L196 64" stroke="' + WARN + '" stroke-width="1.4"/><circle cx="244" cy="114" r="3" fill="' + WARN + '"/><rect x="112" y="38" width="96" height="26" rx="6" fill="#141412" stroke="' + WARN + '" stroke-width="1.5"/><text x="160" y="55" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.5" fill="' + WARN + '">POST-MX</text></g>' : '') +
+      (has('ferry') ? '<g class="' + pop('ferry') + '"><path d="M306 96 L300 64" stroke="' + A + '" stroke-width="1.4"/><circle cx="306" cy="96" r="3" fill="' + A + '"/><rect x="240" y="38" width="96" height="26" rx="6" fill="#141412" stroke="' + A + '" stroke-width="1.5"/><text x="288" y="55" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.5" fill="' + A + '">FERRY PRMT</text></g>' : '') +
+      (has('none') ? '<g class="' + pop('none') + '"><rect x="230" y="38" width="106" height="26" rx="6" fill="#141412" stroke="#E8E8E2" stroke-width="1.4"/><path d="M240 51 L244 55 L251 46" fill="none" stroke="#E8E8E2" stroke-width="2" stroke-linecap="round"/><text x="256" y="55" font-family="JetBrains Mono, monospace" font-size="10" fill="#E8E8E2">NO ITEMS</text></g>' : '') + '</svg>';
+  },
+  other: function (v) {
+    v = v || []; var keys = ['fatigue', 'health', 'stress', 'crew', 'env'], short = ['FATIGUE', 'HEALTH', 'STRESS', 'CREW', 'ENVIRO'];
+    var L = [[169, 29, 'start'], [204, 150, 'start'], [110, 214, 'middle'], [16, 150, 'end'], [51, 29, 'end']];
+    var C = 2 * Math.PI * 76, seg = (66 / 360) * C, out = '', n = 0, none = v.indexOf('none') >= 0;
+    keys.forEach(function (k, i) { var on = v.indexOf(k) >= 0; if (on) n++;
+      out += '<circle cx="110" cy="110" r="76" fill="none" stroke="' + (on ? WARN : none ? '#5E5E58' : '#22221F') + '" stroke-width="18" stroke-dasharray="' + seg.toFixed(1) + ' ' + C.toFixed(1) + '" transform="rotate(' + (-90 + i * 72 + 3) + ' 110 110)" class="' + (on && isNew(k) ? 'a-draw' : '') + '" style="--len:' + seg.toFixed(1) + 'px;transition:stroke .35s"/><text x="' + L[i][0] + '" y="' + L[i][1] + '" text-anchor="' + L[i][2] + '" font-family="JetBrains Mono, monospace" font-size="10" fill="' + (on ? WARN : '#9A9A94') + '">' + short[i] + '</text>'; });
+    return '<svg viewBox="-45 0 310 222" style="max-height:220px" role="img" aria-label="Crew readiness ring with five factors">' + out + '<circle cx="110" cy="110" r="58" fill="#0E0E0C" stroke="#2A2A27"/><g transform="translate(110 98)" fill="none" stroke="#E8E8E2" stroke-width="2.2" stroke-linecap="round"><circle cy="-4" r="12"/><path d="M-15 -4 A15 15 0 0 1 15 -4"/><rect x="-18" y="-6" width="5" height="10" rx="2" fill="#E8E8E2" stroke="none"/><rect x="13" y="-6" width="5" height="10" rx="2" fill="#E8E8E2" stroke="none"/><path d="M-20 28 C -18 18 -10 14 0 14 C 10 14 18 18 20 28"/></g><text x="110" y="146" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="' + (n ? WARN : none ? '#E8E8E2' : '#9A9A94') + '" class="' + an('a-fade') + '">' + (n ? n + ' FLAGGED' : none ? 'CREW READY' : 'CHECK EACH') + '</text></svg>';
+  }
+};
+
+/* ===== The questions (screen 20 is the review) ===== */
+var Q = [
+  { id: 'rest', sec: 'Fatigue', title: 'How much rest did the crew get before this duty period?', kind: 'single', topo: 'ringsL', g: 'rest', company: 9,
+    opts: [{ id: 'ok', label: '10+ hrs', level: 1 }, { id: 'short', label: 'Under 10 hrs', level: 3 }] },
+  { id: 'duty', sec: 'Fatigue', title: 'How long will the crew’s duty day be, including this flight?', kind: 'single', topo: 'waves', g: 'duty', company: 1,
+    opts: [{ id: 'u12', label: 'Under 12 hrs', level: 1 }, { id: 'u14', label: '12–14 hrs', level: 2 }, { id: 'o14', label: 'Over 14 hrs', level: 3 }] },
+  { id: 'flight', sec: 'Fatigue', title: 'How much flight time will the crew log in this duty period?', kind: 'single', topo: 'waves', g: 'flight', company: 4,
+    opts: [{ id: 'u6', label: 'Under 6 hrs', level: 1 }, { id: 'u8', label: '6–8 hrs', level: 2 }, { id: 'o8', label: 'Over 8 hrs', level: 3 }] },
+  { id: 'wocl', sec: 'Fatigue', title: 'Does any part of the duty period fall between 0200 and 0600?', sub: 'Local or home-base time, whichever is worse.', kind: 'single', topo: 'rings', g: 'wocl', company: 8,
+    opts: [{ id: 'clear', label: 'Clear of 0200–0600', level: 1 }, { id: 'inside', label: 'Inside 0200–0600', level: 3 }] },
+  { id: 'hours', sec: 'Crew', title: 'Does each pilot meet the in-type minimum?', kind: 'seats', topo: 'rings', g: 'hours', company: '2, 7',
+    seats: [{ key: 'pic', who: 'PIC', note: '200 HRS', ok: 'Meets', low: 'Under' }, { key: 'sic', who: 'SIC', note: '100 HRS', ok: 'Meets', low: 'Under' }] },
+  { id: 'recency', sec: 'Crew', title: 'Has each pilot flown 50+ hours in the last 90 days?', kind: 'seats', topo: 'waves', g: 'recency', company: '5, 6',
+    seats: [{ key: 'pic', who: 'PIC', note: '90 DAYS', ok: '50+ hrs', low: 'Under 50' }, { key: 'sic', who: 'SIC', note: '90 DAYS', ok: '50+ hrs', low: 'Under 50' }] },
+  { id: 'contract', sec: 'Crew', title: 'Is a contract pilot on this crew?', kind: 'single', topo: 'ringsL', g: 'contract', company: 3,
+    opts: [{ id: 'co', label: 'Both company pilots', level: 1 }, { id: 'contract', label: 'Contract pilot on crew', level: 3 }] },
+  { id: 'base', sec: 'Crew', title: 'Where is the crew based?', kind: 'single', topo: 'none', g: 'base', company: 19,
+    opts: [{ id: 'home', label: 'Both based at KHCR', level: 1 }, { id: 'away', label: 'One or both elsewhere', level: 3 }] },
+  { id: 'notice', sec: 'Crew', title: 'How much notice did the crew get for this trip?', kind: 'single', topo: 'rings', g: 'notice', company: 16,
+    opts: [{ id: 'ok', label: '4+ hrs notice', level: 1 }, { id: 'popup', label: 'Pop-up, under 4 hrs', level: 3 }] },
+  { id: 'tower', sec: 'Airports', title: 'Will every airport have an operating tower at ETD/ETA?', sub: 'Origin, destination and alternate.', kind: 'single', topo: 'none', g: 'tower', company: 21,
+    opts: [{ id: 'all', label: 'All towered', level: 1 }, { id: 'some', label: 'One or more non-towered', level: 3 }] },
+  { id: 'awos', sec: 'Airports', title: 'Does the arrival airport have weather reporting?', kind: 'single', topo: 'none', g: 'awos', company: 17,
+    opts: [{ id: 'yes', label: 'METAR / AWOS available', level: 1 }, { id: 'no', label: 'No reporting', level: 3 }] },
+  { id: 'approach', sec: 'Airports', title: 'What’s the best usable approach at your arrival airport?', kind: 'single', topo: 'none', g: 'approach', company: 14,
+    opts: [{ id: 'prec', label: 'Precision', sub: 'ILS · LPV', level: 1 }, { id: 'vert', label: 'Vertical guidance', sub: 'LNAV/VNAV', level: 2 }, { id: 'npa', label: 'Non-precision', sub: 'LNAV · VOR · LOC', level: 3 }, { id: 'vis', label: 'Visual / circling only', sub: 'No instrument approach', level: 4 }] },
+  { id: 'eop', sec: 'Airports', title: 'What does the engine-out procedure look like?', kind: 'single', topo: 'none', g: 'eop', company: 15,
+    opts: [{ id: 'straight', label: 'Straight out', level: 1 }, { id: 'turn', label: 'Turn or special procedure', level: 3 }] },
+  { id: 'runway', sec: 'Airports', title: 'Does landing distance × 1.44 fit on the runway?', kind: 'single', topo: 'none', g: 'runway', company: 11,
+    opts: [{ id: 'fits', label: 'Fits with margin', level: 1 }, { id: 'over', label: 'Exceeds runway', level: 3 }] },
+  { id: 'rcc', sec: 'Airports', title: 'What’s the worst RCC at departure, destination or alternate?', kind: 'rcc', topo: 'none', g: 'rcc', company: 13 },
+  { id: 'intl', sec: 'Airports', title: 'Is this an international operation?', sub: 'Anything outside the U.S. Puerto Rico counts as international.', kind: 'single', topo: 'none', g: 'intl', company: 12,
+    opts: [{ id: 'dom', label: 'Domestic', level: 1 }, { id: 'intl', label: 'International', level: 3 }] },
+  { id: 'hazards', sec: 'Weather', title: 'Any of these at origin, destination, alternate or en route?', sub: 'Tap all that apply.', kind: 'multi', topo: 'none', g: 'hazards', company: '10, 18, 20', noneLabel: 'None reported', wide: true,
+    items: [{ key: 'precip', label: 'Heavy\nprecip', icon: 'M9 16 A6 6 0 0 1 10 4 A8 8 0 0 1 25 6 A5.5 5.5 0 0 1 26 16 Z M11 20 L9 26 M17 20 L15 27 M23 20 L21 26', flag: 'Heavy precipitation' },
+      { key: 'ice', label: 'Mod–severe\nicing', icon: 'M17 2 V28 M5 8.5 L29 21.5 M5 21.5 L29 8.5 M13 4 L17 7 L21 4 M13 26 L17 23 L21 26', flag: 'Moderate–severe icing' },
+      { key: 'turb', label: 'Severe\nturbulence', icon: 'M2 8 Q 6 4 10 8 T 18 8 T 26 8 T 32 8 M2 16 Q 6 12 10 16 T 18 16 T 26 16 T 32 16 M2 24 Q 6 20 10 24 T 18 24 T 26 24 T 32 24', flag: 'Severe turbulence' }] },
+  { id: 'aircraft', sec: 'Close-out', title: 'Any maintenance items affecting this flight?', sub: 'Tap all that apply.', kind: 'multi', topo: 'none', g: 'aircraft', company: 23, noneLabel: 'None', wide: true,
+    items: [{ key: 'mel', label: 'MEL / CDL\nitem', icon: 'M6 4 H28 V26 H6 Z M11 10 H23 M11 15 H23 M11 20 H18', flag: 'MEL / CDL item' },
+      { key: 'ferry', label: 'Ferry\npermit', icon: 'M8 3 H21 L27 9 V27 H8 Z M21 3 V9 H27 M12 15 H23 M12 20 H20', flag: 'Ferry permit' },
+      { key: 'postmx', label: 'First flight\nafter mx', icon: 'M6 26 L18 14 M16 8 A7 7 0 1 0 22 16 L17 15 L16 10 Z', flag: 'First flight after maintenance' }] },
+  { id: 'other', sec: 'Close-out', title: 'Anything else the crew should weigh?', sub: 'Tap all that apply, for either pilot.', kind: 'multi', topo: 'none', g: 'other', company: 22, noneLabel: 'None', wide: false,
+    items: [{ key: 'fatigue', label: 'Fatigue', icon: 'M22 6 A11 11 0 1 0 28 20 A9 9 0 1 1 22 6 Z', flag: 'Fatigue' },
+      { key: 'health', label: 'Illness /\nhealth', icon: 'M17 6 V24 M8 15 H26', flag: 'Illness / health' },
+      { key: 'stress', label: 'Personal\nstress', icon: 'M2 16 H8 L11 8 L16 24 L20 4 L24 20 L27 16 H32', flag: 'Personal stress' },
+      { key: 'crew', label: 'Personnel /\ncrew', icon: 'M11 12 A4.5 4.5 0 1 0 11 3 A4.5 4.5 0 1 0 11 12 M23 12 A4.5 4.5 0 1 0 23 3 A4.5 4.5 0 1 0 23 12 M3 26 C 3 19 8 16 11 16 C 14 16 17 18 17 22 C 17 18 20 16 23 16 C 26 16 31 19 31 26', flag: 'Personnel / crew issue' },
+      { key: 'env', label: 'Environ-\nmental', icon: 'M2 26 L12 10 L18 18 L22 13 L32 26 Z', flag: 'Environmental' }] }
+];
+var SECTIONS = ['Fatigue', 'Crew', 'Airports', 'Weather', 'Close-out'];
+var TOTAL = Q.length + 1;
+
+/* ===== Scoring ===== */
+var SHORT = { rest: 'Rest', duty: 'Duty day', flight: 'Flight time', wocl: 'Circadian low', contract: 'Crew', base: 'Crew base', notice: 'Notice', tower: 'Tower', awos: 'Arrival wx reporting', approach: 'Approach', eop: 'Engine-out', runway: 'Runway × 1.44', intl: 'Operation' };
+function qScore(q, a) {
+  if (a == null) return { pts: 0, flags: [] };
+  var flags = [], pts = 0;
+  if (q.kind === 'single') { var o = q.opts.filter(function (x) { return x.id === a; })[0]; if (o) { pts = SCORING.levelPts[o.level] || 0; if (o.level > 1) flags.push((SHORT[q.id] || q.sec) + ': ' + o.label); } }
+  if (q.kind === 'seats') q.seats.forEach(function (s) { if (a[s.key] === 'low') { pts += SCORING.seatLowPts; flags.push(s.who + ' ' + (q.id === 'hours' ? 'under ' + s.note.toLowerCase() + ' in type' : 'under 50 hrs / 90 days')); } });
+  if (q.kind === 'multi') q.items.forEach(function (it) { if (a.indexOf(it.key) >= 0) { pts += SCORING.multiItemPts; flags.push(it.flag); } });
+  if (q.kind === 'rcc') { pts = SCORING.rccPts[a] || 0; if (pts > 0) flags.push('RCC ' + a); }
+  return { pts: pts, flags: flags };
+}
+function total(ans) { var t = 0; Q.forEach(function (q) { t += qScore(q, ans[q.id]).pts; }); return t; }
+function band(score) { return score >= SCORING.bands.high ? 'high' : score >= SCORING.bands.elevated ? 'elev' : 'low'; }
+var BAND_TEXT = { low: 'LOW RISK', elev: 'ELEVATED', high: 'HIGH RISK' };
+function answered(q, a) { if (a == null) return false; if (q.kind === 'seats') return !!(a.pic && a.sic); if (q.kind === 'multi') return a.length > 0; return true; }
+function allAnswered(d) { return Q.every(function (q) { return answered(q, d.ans[q.id]); }); }
+
+/* ===== Icons + small helpers ===== */
+var IC = {
+  back: '<svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#E8E8E2" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 4 L6.5 10 L12.5 16"/></svg>',
+  x: '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#E8E8E2" stroke-width="2.2" stroke-linecap="round"><path d="M4 4 L14 14 M14 4 L4 14"/></svg>',
+  tri: '<svg aria-hidden="true" width="30" height="28" viewBox="0 0 26 24" fill="none" stroke="#F5C518" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"><path d="M13 2 L24.5 22 H1.5 Z"/><path d="M13 9 V14.5"/><path d="M13 18.2 V18.4"/></svg>',
+  arrow: '<svg aria-hidden="true" width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#0A0A0A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11 H18 M12 5 L18 11 L12 17"/></svg>',
+  plus: '<svg aria-hidden="true" width="24" height="24" viewBox="0 0 22 22" fill="none" stroke="#0A0A0A" stroke-width="3.2" stroke-linecap="round"><path d="M11 3 V19 M3 11 H19"/></svg>',
+  hist: '<svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#E8E8E2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.6 10 A6.5 6.5 0 1 0 5.5 5.4"/><path d="M3 2.8 V6.4 H6.6"/><path d="M10 6.5 V10 L12.6 11.6"/></svg>',
+  pencil: '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#9A9A94" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17 L4 13 L13 4 L16 7 L7 16 Z M11.5 5.5 L14.5 8.5"/></svg>',
+  chev: '<svg aria-hidden="true" width="8" height="14" viewBox="0 0 8 14" fill="none" stroke="#6E6E68" stroke-width="2" stroke-linecap="round"><path d="M1 1 L7 7 L1 13"/></svg>'
+};
+function routeText() { var f = S.flight; return esc(f.dep) + ' → ' + esc(f.arr) + ' · ' + esc(f.tail); }
+function dateStr(ts) { var d = new Date(ts); return d.toLocaleDateString('en-US', { day: '2-digit', month: 'short' }).toUpperCase(); }
+function st(i) { return ' st" style="--i:' + i; }
+function header(left, center, right) { return '<div class="top">' + left + '<div class="route">' + center + '</div>' + right + '</div>'; }
+var blank = '<span style="width:48px;flex-shrink:0"></span>';
+
+/* ===== Views ===== */
+function viewHome() {
+  var f = S.flight, d = S.draft, last = S.history[0];
+  var lastTxt = last ? '<b>' + dateStr(last.ts) + '</b><b>·</b><b>' + last.score + ' PTS</b><span class="chip ' + last.band + '" style="font-size:9px;padding:3px 8px">' + BAND_TEXT[last.band] + '</span>' : '<b>None yet</b>';
+  var offline = false; try { offline = !!(navigator.serviceWorker && navigator.serviceWorker.controller); } catch (e) {}
+  var resumeN = d ? (d.seenReview && allAnswered(d) ? TOTAL : d.idx + 1) : 0;
+  return '<div class="screen home">' + homeTopo() +
+    '<div class="top' + st(0) + '"><div class="brand">' + IC.tri + '<span class="word">FRAT</span></div>' +
+    '<div style="display:flex;align-items:center;gap:14px"><span class="mono" style="font-size:13px;color:#9A9A94">' + dateStr(Date.now()) + '</span><button class="icon-btn" data-act="history" aria-label="Past FRATs">' + IC.hist + (S.history.length ? '<span class="n">' + S.history.length + '</span>' : '') + '</button></div></div>' +
+    '<main class="home-main"><p class="eyebrow' + st(1) + '">Pre-flight risk</p><h1 class="hero' + st(2) + '">Assess it.<br>Brief it.<br>Go fly.</h1><p class="last' + st(3) + '"><span>Last FRAT</span><i></i>' + lastTxt + '</p></main>' +
+    '<div class="home-foot">' +
+    '<button class="flightline' + st(4) + '" data-act="edit" aria-label="Edit flight details"><span class="fl"><span class="lbl" style="font-size:10px;color:' + (f.example ? 'var(--accent)' : 'var(--dim)') + '">' + (f.example ? 'Example flight · tap to set yours' : 'Next flight · ETD ' + esc(f.etd)) + '</span><b>' + esc(f.dep) + ' → ' + esc(f.arr) + ' · ' + esc(f.tail) + '</b></span>' + IC.pencil + '</button>' +
+    (d ? '<button class="primary big' + st(5) + '" data-act="resume">RESUME · ' + String(resumeN).padStart(2, '0') + '/' + TOTAL + ' ' + IC.arrow + '</button>'
+       : '<button class="primary big' + st(5) + '" data-act="start">' + IC.plus + ' START FRAT</button>') +
+    (d ? '<button class="textbtn' + st(6) + '" data-act="restart">Start a new FRAT</button>'
+       : '<p class="offline' + st(6) + '"><i></i>' + (offline ? 'Offline ready' : 'Saved on this phone') + '</p>') +
+    '</div></div>';
+}
+
+function viewHistory() {
+  var rows = S.history.map(function (h, i) {
+    return '<button class="row' + st(Math.min(i, 8) + 1) + '" data-act="hist" data-i="' + i + '"><span class="l" style="flex-direction:column;align-items:flex-start;gap:4px"><b style="font-size:17px">' + esc(h.flight.dep) + ' → ' + esc(h.flight.arr) + '</b><span class="lbl" style="font-size:10px">' + dateStr(h.ts) + ' · ' + esc(h.flight.tail) + ' · ' + h.score + ' PTS</span></span><span style="display:flex;align-items:center;gap:10px"><span class="chip ' + h.band + '">' + BAND_TEXT[h.band] + '</span>' + IC.chev + '</span></button>';
+  }).join('');
+  return '<div class="screen">' + header(blank, '<span style="color:var(--accent)">PAST FRATS</span>', '<button class="icon-btn" data-act="home-down" aria-label="Close">' + IC.x + '</button>') +
+    '<div class="scroll">' + (rows ? '<div class="rows">' + rows + '</div><p class="lbl" style="text-align:center;font-size:10px;margin:4px 0 0">Last 50 · stored on this phone</p>'
+      : '<div class="st" style="--i:1;margin:auto 0;text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center"><svg aria-hidden="true" width="44" height="44" viewBox="0 0 20 20" fill="none" stroke="#3A3A36" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.6 10 A6.5 6.5 0 1 0 5.5 5.4"/><path d="M3 2.8 V6.4 H6.6"/><path d="M10 6.5 V10 L12.6 11.6"/></svg><b style="font-size:20px">No FRATs yet</b><span style="color:var(--dim);font-size:15px;max-width:30ch">Each FRAT you submit is listed here with its score.</span></div>') +
+    '</div></div>';
+}
+
+function viewEdit() {
+  var f = S.flight, fld = function (id, label, val, ph) { return '<div class="field"><label class="lbl" for="f-' + id + '">' + label + '</label><input id="f-' + id + '" data-f="' + id + '" value="' + esc(f.example ? '' : val) + '" placeholder="' + esc(ph) + '" autocomplete="off" autocapitalize="characters" maxlength="12"></div>'; };
+  return '<div class="screen">' + header(blank, '<span style="color:var(--accent)">FLIGHT DETAILS</span>', '<button class="icon-btn" data-act="home-down" aria-label="Close">' + IC.x + '</button>') +
+    '<form class="scroll" id="flight-form"><div class="grid2' + st(1) + '">' + fld('dep', 'Departure', f.dep, 'KHCR') + fld('arr', 'Arrival', f.arr, 'KDEN') + fld('tail', 'Tail', f.tail, 'N680XX') + fld('etd', 'ETD (local)', f.etd, '0800') + fld('pic', 'PIC', f.pic, 'Last name') + fld('sic', 'SIC', f.sic, 'Last name') + '</div>' +
+    '<button class="primary' + st(2) + '" type="submit">SAVE FLIGHT</button></form></div>';
+}
+
+function viewQuestion() {
+  var d = S.draft, i = d.idx, q = Q[i], a = d.ans[q.id], n = i + 1;
+  ANIM = PREV == null || JSON.stringify(PREV) !== JSON.stringify(a);
+  var body = '', k = 3;
+  if (q.kind === 'single') {
+    var max = q.opts.length > 3 ? 4 : 3, tall = q.opts.length <= 2;
+    body = '<div class="answers" role="radiogroup" aria-label="' + esc(q.title) + '">' + q.opts.map(function (o) {
+      return '<button class="opt' + (tall ? ' tall' : '') + (a === o.id ? ' on' : '') + st(k++) + '" role="radio" aria-checked="' + (a === o.id) + '" data-act="pick" data-v="' + o.id + '"><span>' + esc(o.label) + (o.sub ? '<span class="sub">' + esc(o.sub) + '</span>' : '') + '</span>' + sevBars(o.level, max) + '</button>';
+    }).join('') + '</div>';
+  } else if (q.kind === 'seats') {
+    var sa = a || {};
+    body = '<div class="answers">' + q.seats.map(function (s) {
+      return '<div class="seat-row' + st(k++) + '" role="radiogroup" aria-label="' + s.who + '"><span class="who"><span class="mono" style="font-size:12px">' + s.who + '</span><span class="mono" style="font-size:10px;color:#9A9A94">' + s.note + '</span></span>' +
+        '<button class="seg' + (sa[s.key] === 'ok' ? ' on' : '') + '" role="radio" aria-checked="' + (sa[s.key] === 'ok') + '" data-act="seat" data-k="' + s.key + '" data-v="ok">' + s.ok + '</button>' +
+        '<button class="seg' + (sa[s.key] === 'low' ? ' on' : '') + '" role="radio" aria-checked="' + (sa[s.key] === 'low') + '" data-act="seat" data-k="' + s.key + '" data-v="low">' + s.low + '</button></div>';
+    }).join('') + '</div>';
+  } else if (q.kind === 'multi') {
+    var ma = a || [];
+    var tiles = q.items.map(function (it) { var on = ma.indexOf(it.key) >= 0;
+      return '<button class="tile' + (on ? ' on' : '') + st(k++) + '" aria-pressed="' + on + '" data-act="toggle" data-v="' + it.key + '"><svg aria-hidden="true" width="30" height="26" viewBox="0 0 34 30" fill="none" stroke="' + (on ? '#0A0A0A' : '#E8E8E2') + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="' + it.icon + '"/></svg>' + esc(it.label) + '</button>'; }).join('');
+    var noneOn = ma.indexOf('none') >= 0;
+    var noneBtn = q.wide ? '<button class="opt' + (noneOn ? ' on' : '') + st(k++) + '" style="justify-content:center;--i:' + (k - 1) + '" aria-pressed="' + noneOn + '" data-act="none" data-v="none">' + q.noneLabel + '</button>'
+      : '<button class="tile ghost' + (noneOn ? ' on' : '') + st(k++) + '" aria-pressed="' + noneOn + '" data-act="none" data-v="none"><svg aria-hidden="true" width="30" height="26" viewBox="0 0 34 30" fill="none" stroke="' + (noneOn ? '#0A0A0A' : '#E8E8E2') + '" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 15 L14 21 L26 9"/></svg>' + q.noneLabel + '</button>';
+    body = '<div class="answers"><div class="tiles">' + tiles + (q.wide ? '' : noneBtn) + '</div>' + (q.wide ? noneBtn : '') +
+      '<button class="primary' + st(k++) + '" style="min-height:60px;font-size:19px;--i:' + (k - 1) + '" data-act="next"' + (ma.length ? '' : ' disabled') + '>CONTINUE ' + IC.arrow + '</button></div>';
+  } else if (q.kind === 'rcc') {
+    body = '<div class="answers"><div class="rcc-row' + st(k++) + '" role="radiogroup" aria-label="Runway condition code">' + RCC.map(function (c) { var on = a === c.n;
+      return '<button class="rcc' + (on ? ' on' : '') + '" role="radio" aria-checked="' + on + '" aria-label="RCC ' + c.n + ', ' + c.word + '" data-act="pick" data-v="' + c.n + '"><b>' + c.n + '</b><small>' + c.short + '</small><em style="background:' + c.color + '"></em></button>'; }).join('') +
+      '</div><div class="lbl' + st(k++) + '" style="display:flex;justify-content:space-between;font-size:10px;--i:' + (k - 1) + '"><span>Dry · best</span><span>Nil · worst</span></div></div>';
+  }
+  var sc = total(d.ans), b = band(sc);
+  var html = '<div class="screen">' + (q.topo !== 'none' ? topo(q.topo) : '') +
+    header('<button class="icon-btn" data-act="back" aria-label="Back">' + IC.back + '</button>', routeText(), '<button class="icon-btn" data-act="exit" aria-label="Exit FRAT">' + IC.x + '</button>') +
+    '<div class="prog"><div class="prog-row"><span style="color:var(--accent)">' + String(n).padStart(2, '0') + ' / ' + TOTAL + '</span><span style="color:#9A9A94">' + q.sec.toUpperCase() + '</span></div><div class="bar"><i style="width:' + (n / TOTAL * 100).toFixed(2) + '%;--from:' + (S.lastProg * 100).toFixed(2) + '%"></i></div></div>' +
+    '<div class="q-main"><div class="fig' + st(0) + '">' + G[q.g](a) + '</div><h1 class="q' + st(1) + '">' + esc(q.title) + '</h1>' + (q.sub ? '<p class="q-sub' + st(2) + '">' + esc(q.sub) + '</p>' : '') + '</div>' +
+    body + '<div class="foot' + st(k) + '"><span style="color:#9A9A94">RISK SO FAR</span><span>' + sc + ' PTS · <span style="color:' + (b === 'high' ? BAD : b === 'elev' ? A : '#E8E8E2') + '">' + BAND_TEXT[b] + '</span></span></div></div>';
+  ANIM = true;
+  return html;
+}
+
+function reviewTarget(sec) {
+  var qs = Q.filter(function (q) { return q.sec === sec; });
+  var miss = qs.filter(function (q) { return !answered(q, S.draft.ans[q.id]); })[0];
+  return Q.indexOf(miss || qs[0]);
+}
+function viewReview() {
+  var d = S.draft, sc = total(d.ans), b = band(sc), needle = Math.max(-84, Math.min(84, -84 + (sc / (SCORING.bands.high * 1.5)) * 168));
+  var missing = Q.filter(function (q) { return !answered(q, d.ans[q.id]); });
+  var rows = SECTIONS.map(function (sec, si) {
+    var qs = Q.filter(function (q) { return q.sec === sec; }), first = Q.indexOf(qs[0]), last = Q.indexOf(qs[qs.length - 1]);
+    var nf = 0, miss = 0; qs.forEach(function (q) { nf += qScore(q, d.ans[q.id]).flags.length; if (!answered(q, d.ans[q.id])) miss++; });
+    var range = String(first + 1).padStart(2, '0') + (last > first ? '–' + String(last + 1).padStart(2, '0') : '');
+    return '<button class="row' + st(si + 2) + '" data-act="jump" data-sec="' + sec + '"><span class="l"><span class="mono" style="font-size:11px;color:#9A9A94;width:46px">' + range + '</span><b style="font-size:17px">' + sec + '</b></span><span style="display:flex;align-items:center;gap:10px"><span class="chip ' + (miss ? 'high' : nf ? 'flag' : 'clear') + '">' + (miss ? miss + ' MISSING' : nf ? nf + ' FLAGGED' : 'CLEAR') + '</span>' + IC.chev + '</span></button>';
+  }).join('');
+  var flags = []; Q.forEach(function (q) { qScore(q, d.ans[q.id]).flags.forEach(function (f) { flags.push(f); }); });
+  return '<div class="screen">' + header('<button class="icon-btn" data-act="back" aria-label="Back">' + IC.back + '</button>', '<span style="color:var(--accent)">20 / 20 · REVIEW</span><br>' + routeText(), '<button class="icon-btn" data-act="exit" aria-label="Exit FRAT">' + IC.x + '</button>') +
+    '<div class="prog"><div class="bar"><i style="width:100%;--from:' + (S.lastProg * 100).toFixed(2) + '%"></i></div></div>' +
+    '<div class="scroll"><section class="st" style="--i:0;display:flex;flex-direction:column;align-items:center;gap:4px" aria-label="Total risk"><svg viewBox="0 0 260 140" style="width:min(260px,80%)" role="img" aria-label="Total risk gauge"><path d="M22 128 A108 108 0 0 1 84.3 30.1" fill="none" stroke="#5E5E58" stroke-width="16"/><path d="M88.6 28.2 A108 108 0 0 1 171.4 28.2" fill="none" stroke="' + A + '" stroke-opacity="0.85" stroke-width="16"/><path d="M175.7 30.1 A108 108 0 0 1 238 128" fill="none" stroke="' + BAD + '" stroke-width="16"/><g class="a-swing" style="transform:rotate(' + needle.toFixed(0) + 'deg);transform-origin:130px 128px;--from:-84deg;animation-delay:200ms;animation-duration:.9s"><path d="M130 128 L126 124 L130 40 L134 124 Z" fill="#F4F4F0"/></g><circle cx="130" cy="128" r="9" fill="#141412" stroke="#4A4A45" stroke-width="1.5"/></svg>' +
+    '<b style="font-size:44px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums">' + sc + ' <span style="font-size:18px;color:#9A9A94">PTS</span></b><span class="chip ' + b + '">' + BAND_TEXT[b] + '</span></section>' +
+    '<div class="rows">' + rows + '</div>' +
+    (flags.length ? '<section class="st" style="--i:7;display:flex;flex-direction:column;gap:6px" aria-label="Flagged items"><span class="lbl">Flagged</span>' + flags.map(function (f) { return '<span style="font-size:15px;color:var(--fg-2)">— ' + esc(f) + '</span>'; }).join('') + '</section>' : '') +
+    '<div class="field st" style="--i:8"><label class="lbl" for="comments">Pilot comments · ' + (b === 'low' ? 'optional' : 'mitigations') + '</label><textarea id="comments" placeholder="Mitigations, notes for the chief pilot…">' + esc(d.comments) + '</textarea></div>' +
+    (b === 'high' ? '<p class="st" style="--i:9;margin:0;padding:10px 14px;border-radius:14px;background:rgba(255,106,61,0.14);border:1px solid #FF6A3D;font-size:14px;color:#FFB8A0">High risk: route to the chief pilot for approval before release.</p>' : '') +
+    (missing.length ? '<p style="margin:0;font-size:14px;color:#FFB8A0">' + missing.length + ' question' + (missing.length > 1 ? 's' : '') + ' still open. Tap a section to finish.</p>' : '') +
+    '<button class="primary st" style="--i:10" data-act="submit"' + (missing.length ? ' disabled' : '') + '>' + (b === 'high' ? 'SUBMIT FOR APPROVAL' : 'SUBMIT FRAT') + '</button></div></div>';
+}
+
+function summaryText(h) {
+  var lines = ['FRAT — ' + h.flight.dep + ' → ' + h.flight.arr + ' · ' + h.flight.tail, new Date(h.ts).toLocaleString(), 'PIC ' + h.flight.pic + ' · SIC ' + h.flight.sic, 'Score: ' + h.score + ' pts (' + BAND_TEXT[h.band] + ')', ''];
+  if (h.flags.length) { lines.push('Flagged:'); h.flags.forEach(function (f) { lines.push(' - ' + f); }); } else lines.push('No items flagged.');
+  if (h.comments) { lines.push('', 'Comments: ' + h.comments); }
+  lines.push('', '(Prototype — placeholder scoring)');
+  return lines.join('\n');
+}
+function viewDone() {
+  var h = S.viewing, fromHist = S.doneFrom === 'history';
+  return '<div class="screen">' + topo('rings') + header(fromHist ? '<button class="icon-btn" data-act="to-history" aria-label="Back to past FRATs">' + IC.back + '</button>' : blank, esc(h.flight.dep) + ' → ' + esc(h.flight.arr) + ' · ' + esc(h.flight.tail), fromHist ? blank : '<button class="icon-btn" data-act="home-down" aria-label="Close">' + IC.x + '</button>') +
+    '<div class="scroll" style="justify-content:center"><div class="st" style="--i:0;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center"><span class="lbl" style="color:var(--accent)">' + (fromHist ? dateStr(h.ts) : 'FRAT submitted') + '</span><b style="font-size:64px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums">' + h.score + '</b><span class="chip ' + h.band + '">' + BAND_TEXT[h.band] + '</span></div>' +
+    '<pre class="summary st" style="--i:1" id="summary">' + esc(summaryText(h)) + '</pre>' +
+    '<button class="primary st" style="--i:2" data-act="copy">COPY SUMMARY</button><p class="lbl st" style="--i:3;text-align:center;font-size:10px;margin:0">Paste into FltSafety comments or a text to the chief pilot</p>' +
+    (fromHist ? '' : '<button class="ghost-btn st" style="--i:4" data-act="home-down">Done</button>') + '</div></div>';
+}
+
+/* ===== Motion: screen transitions ===== */
+function viewHTML() {
+  return S.view === 'home' ? viewHome() : S.view === 'edit' ? viewEdit() : S.view === 'history' ? viewHistory() : S.view === 'q' ? viewQuestion() : S.view === 'review' ? viewReview() : viewDone();
+}
+function bindScreen(scr) {
+  var form = scr.querySelector('#flight-form');
+  if (form) form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var f = {}; Array.prototype.forEach.call(form.querySelectorAll('input'), function (inp) { f[inp.dataset.f] = (inp.value || inp.placeholder).trim().toUpperCase(); });
+    S.flight = f; store.set('flight', f); go('home', 'down'); toast('Flight saved');
+  });
+  var ta = scr.querySelector('#comments');
+  if (ta) ta.addEventListener('input', function () { S.draft.comments = ta.value; saveDraft(); });
+}
+function go(view, dir) { S.view = view; render(dir); }
+function render(dir) {
+  var old = app.querySelector('.screen:not(.leaving)');
+  PREV = null;
+  var tmp = document.createElement('div'); tmp.innerHTML = viewHTML();
+  var scr = tmp.firstElementChild;
+  scr.classList.add('enter');
+  app.appendChild(scr); bindScreen(scr);
+  if (S.view === 'q') S.lastProg = (S.draft.idx + 1) / TOTAL; else if (S.view === 'review') S.lastProg = 1; else S.lastProg = 0;
+  setTimeout(function () { scr.classList.remove('enter'); }, 1000);
+  if (!old) return;
+  old.classList.add('leaving');
+  if (reduce || !dir || !scr.animate) { old.remove(); return; }
+  var H = { duration: 340, easing: EASE, fill: 'both' }, V = { duration: 420, easing: EASE, fill: 'both' }, a1, a2;
+  if (dir === 'fwd') {
+    a1 = scr.animate([{ transform: 'translateX(100%)' }, { transform: 'none' }], H);
+    a2 = old.animate([{ transform: 'none', opacity: 1 }, { transform: 'translateX(-28%)', opacity: 0.3 }], H);
+  } else if (dir === 'back') {
+    old.style.zIndex = 2;
+    a1 = scr.animate([{ transform: 'translateX(-28%)', opacity: 0.3 }, { transform: 'none', opacity: 1 }], H);
+    a2 = old.animate([{ transform: 'none' }, { transform: 'translateX(100%)' }], H);
+  } else if (dir === 'up') {
+    scr.style.zIndex = 2;
+    a1 = scr.animate([{ transform: 'translateY(100%)' }, { transform: 'none' }], V);
+    a2 = old.animate([{ opacity: 1 }, { opacity: 0.3 }], V);
+  } else if (dir === 'down') {
+    old.style.zIndex = 2;
+    a1 = scr.animate([{ opacity: 0.3 }, { opacity: 1 }], V);
+    a2 = old.animate([{ transform: 'none' }, { transform: 'translateY(100%)' }], { duration: 360, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'both' });
+  } else {
+    a1 = scr.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 240, fill: 'both' });
+    a2 = old.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 240, fill: 'both' });
+  }
+  a2.onfinish = function () { old.remove(); };
+  a1.onfinish = function () { a1.cancel(); scr.style.zIndex = ''; };
+}
+/* In-place update after an answer: swap graphic, answers and footer so the graphic animates */
+function refresh(prev, popSel) {
+  var scr = app.querySelector('.screen:not(.leaving)'); if (!scr) return;
+  scr.classList.remove('enter');
+  PREV = prev === undefined ? null : prev;
+  var tmp = document.createElement('div'); tmp.innerHTML = viewQuestion();
+  PREV = null;
+  var n = tmp.firstElementChild;
+  ['.fig', '.answers', '.foot'].forEach(function (sel) { var a = scr.querySelector(sel), b = n.querySelector(sel); if (a && b) a.parentNode.replaceChild(b, a); });
+  var p = popSel ? scr.querySelector(popSel) : null;
+  if (p) { p.classList.add('pop'); try { p.focus({ preventScroll: true }); } catch (e) {} }
+  return p;
+}
+
+/* ===== Sheets + toast ===== */
+function sheetHTML(kind) {
+  if (kind === 'exit') return '<b style="font-size:22px">Leave this FRAT?</b><p style="margin:0;color:var(--muted);font-size:15px">Your answers stay saved as a draft. Resume it from the home screen.</p><button class="primary" data-act="sheet-close" style="min-height:62px;font-size:19px">KEEP GOING</button><button class="ghost-btn" data-act="leave">Leave and save draft</button><button class="ghost-btn" data-act="discard" style="color:#FFB8A0;border-color:#5A2E24">Discard answers</button>';
+  return '<b style="font-size:22px">Start a new FRAT?</b><p style="margin:0;color:var(--muted);font-size:15px">The draft in progress will be discarded.</p><button class="primary" data-act="restart-yes" style="min-height:62px;font-size:19px">START NEW</button><button class="ghost-btn" data-act="sheet-close">Keep the draft</button>';
+}
+function openSheet(kind) {
+  var exist = app.querySelector('.sheet-wrap'); if (exist) exist.remove();
+  var w = document.createElement('div'); w.className = 'sheet-wrap'; w.dataset.act = 'sheet-close';
+  w.innerHTML = '<div class="sheet" role="dialog" aria-modal="true" aria-label="Confirm"><span class="grab" aria-hidden="true"></span>' + sheetHTML(kind) + '</div>';
+  app.appendChild(w);
+  if (!reduce && w.animate) {
+    w.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 220, easing: 'ease-out' });
+    w.firstChild.animate([{ transform: 'translateY(100%)' }, { transform: 'none' }], { duration: 380, easing: EASE });
+  }
+  var b = w.querySelector('button'); if (b) try { b.focus({ preventScroll: true }); } catch (e) {}
+}
+function closeSheet(cb) {
+  var w = app.querySelector('.sheet-wrap:not(.closing)');
+  if (!w) { if (cb) cb(); return; }
+  w.classList.add('closing');
+  if (reduce || !w.animate) { w.remove(); if (cb) cb(); return; }
+  w.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 260, fill: 'both' });
+  var a = w.firstChild.animate([{ transform: 'none' }, { transform: 'translateY(100%)' }], { duration: 260, easing: 'cubic-bezier(.4,0,1,1)', fill: 'both' });
+  a.onfinish = function () { w.remove(); };
+  if (cb) setTimeout(cb, 120);
+}
+var toastT;
+function toast(msg) {
+  var t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role', 'status'); t.textContent = msg; app.appendChild(t);
+  if (!reduce && t.animate) t.animate([{ opacity: 0, transform: 'translate(-50%, 10px)' }, { opacity: 1, transform: 'translate(-50%, 0)' }], { duration: 260, easing: EASE });
+  setTimeout(function () { if (!reduce && t.animate) { var a = t.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 220, fill: 'both' }); a.onfinish = function () { t.remove(); }; } else t.remove(); }, 1700);
+}
+
+/* ===== Flow ===== */
+function saveDraft() { store.set('draft', S.draft); }
+function startFrat() { S.draft = { ans: {}, idx: 0, comments: '', started: Date.now(), seenReview: false }; saveDraft(); S.lastProg = 0; go('q', 'fwd'); }
+function nextTarget() {
+  var d = S.draft;
+  if (d.seenReview) { for (var j = d.idx + 1; j < Q.length; j++) if (!answered(Q[j], d.ans[Q[j].id])) return j; return 'review'; }
+  return d.idx < Q.length - 1 ? d.idx + 1 : 'review';
+}
+/* Hold after an answer: let the graphic finish, dwell (longer when the answer adds risk), then move on.
+   A sweep line on the chosen answer shows the hold; a tap anywhere skips it. */
+var HOLD = { dwellSafe: 450, dwellFlag: 1100, minSafe: 950, minFlag: 1750 };
+var holdT = null, holding = false;
+function goNext() {
+  if (S.view !== 'q') return;
+  var t = nextTarget();
+  if (t === 'review') { S.draft.seenReview = true; saveDraft(); go('review', 'fwd'); }
+  else { S.draft.idx = t; saveDraft(); go('q', 'fwd'); }
+}
+function clearHold() { clearTimeout(holdT); holding = false; var s = app.querySelector('.sweep'); if (s) s.remove(); }
+function skipHold() { clearHold(); goNext(); }
+function startHold(btn, flagged) {
+  clearHold();
+  var end = 600, fig = app.querySelector('.screen:not(.leaving) .fig');
+  try {
+    fig.getAnimations({ subtree: true }).forEach(function (an) {
+      var t = an.effect.getComputedTiming(), left = (t.endTime || 0) - (an.currentTime || 0);
+      if (left > end && left < 4000) end = left;
+    });
+  } catch (e) {}
+  var dur = reduce ? (flagged ? 1200 : 700) : Math.max(Math.round(end + (flagged ? HOLD.dwellFlag : HOLD.dwellSafe)), flagged ? HOLD.minFlag : HOLD.minSafe);
+  if (btn) { var sw = document.createElement('span'); sw.className = 'sweep'; sw.setAttribute('aria-hidden', 'true'); sw.style.animationDuration = dur + 'ms'; btn.appendChild(sw); }
+  holding = true;
+  holdT = setTimeout(function () { holding = false; goNext(); }, dur);
+}
+function isFlagged(q) { return qScore(q, S.draft.ans[q.id]).pts > 0; }
+function clone(x) { return x == null ? x : JSON.parse(JSON.stringify(x)); }
+
+app.addEventListener('click', function (e) {
+  var el = e.target.closest('[data-act]');
+  if (!el || !app.contains(el)) { if (holding && S.view === 'q' && !e.target.closest('.sheet-wrap')) skipHold(); return; }
+  if (el.closest('.screen.leaving') || el.closest('.sheet-wrap.closing')) return;
+  if (el.classList.contains('sheet-wrap') && e.target !== el) return;
+  var act = el.dataset.act, d = S.draft, q = d && S.view === 'q' ? Q[d.idx] : null, prev;
+  switch (act) {
+    case 'start': startFrat(); break;
+    case 'restart': openSheet('restart'); break;
+    case 'restart-yes': closeSheet(startFrat); break;
+    case 'resume': S.lastProg = 0; go(d.seenReview && allAnswered(d) ? 'review' : 'q', 'fwd'); break;
+    case 'edit': go('edit', 'up'); break;
+    case 'history': go('history', 'up'); break;
+    case 'home-down': go('home', 'down'); break;
+    case 'to-history': go('history', 'back'); break;
+    case 'pick':
+      var pv = q.kind === 'rcc' ? Number(el.dataset.v) : el.dataset.v;
+      if (holding && d.ans[q.id] === pv) { skipHold(); break; } /* tap the chosen answer again to move on */
+      prev = clone(d.ans[q.id]);
+      d.ans[q.id] = pv; saveDraft();
+      startHold(refresh(prev, '[data-v="' + el.dataset.v + '"]'), isFlagged(q)); break;
+    case 'seat':
+      if (holding && (d.ans[q.id] || {})[el.dataset.k] === el.dataset.v) { skipHold(); break; }
+      clearHold();
+      prev = clone(d.ans[q.id]) || {};
+      var sa = Object.assign({}, d.ans[q.id] || {}); sa[el.dataset.k] = el.dataset.v; d.ans[q.id] = sa; saveDraft();
+      var sb = refresh(prev, '[data-k="' + el.dataset.k + '"][data-v="' + el.dataset.v + '"]');
+      if (sa.pic && sa.sic) startHold(sb, isFlagged(q));
+      break;
+    case 'toggle':
+      clearHold();
+      prev = clone(d.ans[q.id]) || [];
+      var cur = d.ans[q.id] || [], v = el.dataset.v, ma = cur.filter(function (x) { return x !== 'none' && x !== v; });
+      if (cur.indexOf(v) < 0) ma.push(v);
+      d.ans[q.id] = ma; saveDraft(); refresh(prev, '[data-v="' + v + '"]'); break;
+    case 'none':
+      if (holding && (d.ans[q.id] || [])[0] === 'none') { skipHold(); break; }
+      prev = clone(d.ans[q.id]) || []; d.ans[q.id] = ['none']; saveDraft();
+      startHold(refresh(prev, '[data-act="none"]'), false); break;
+    case 'next': skipHold(); break;
+    case 'back':
+      clearHold();
+      if (S.view === 'review') { d.idx = Q.length - 1; saveDraft(); go('q', 'back'); }
+      else if (d.idx > 0) { d.idx--; saveDraft(); go('q', 'back'); }
+      else go('home', 'back');
+      break;
+    case 'jump': d.idx = reviewTarget(el.dataset.sec); saveDraft(); go('q', 'back'); break;
+    case 'exit': clearHold(); openSheet('exit'); break;
+    case 'sheet-close': closeSheet(); break;
+    case 'leave': clearHold(); closeSheet(function () { go('home', 'back'); }); break;
+    case 'discard': clearHold(); S.draft = null; store.del('draft'); closeSheet(function () { go('home', 'back'); }); break;
+    case 'submit':
+      var sc = total(d.ans), flags = []; Q.forEach(function (qq) { qScore(qq, d.ans[qq.id]).flags.forEach(function (f) { flags.push(f); }); });
+      var rec = { ts: Date.now(), flight: Object.assign({}, S.flight), score: sc, band: band(sc), flags: flags, comments: d.comments, ans: d.ans };
+      S.history.unshift(rec); S.history = S.history.slice(0, 50); store.set('history', S.history);
+      S.draft = null; store.del('draft'); S.viewing = rec; S.doneFrom = 'submit'; go('done', 'up'); break;
+    case 'hist': S.viewing = S.history[Number(el.dataset.i)]; S.doneFrom = 'history'; go('done', 'fwd'); break;
+    case 'copy':
+      var text = summaryText(S.viewing), pre = app.querySelector('.screen:not(.leaving) #summary');
+      var fallback = function () { try { var r = document.createRange(); r.selectNodeContents(pre); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); } catch (err) {} toast('Selected. Copy from the menu'); };
+      try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function () { toast('Copied'); }, fallback); else fallback(); } catch (err) { fallback(); }
+      break;
+  }
+});
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && app.querySelector('.sheet-wrap')) closeSheet(); });
+
+if (S.draft && S.draft.idx >= Q.length) S.draft.idx = Q.length - 1;
+render(null);
+if ('serviceWorker' in navigator && location.protocol === 'https:') { try { navigator.serviceWorker.register('sw.js').catch(function () {}); } catch (e) {} }
+})();
+</script>
+
+</body>
+</html>
